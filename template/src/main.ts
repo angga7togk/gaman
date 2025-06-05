@@ -1,3 +1,3 @@
-import App from "_lib/app";
+import App from "myd/app";
 
 const app = App();

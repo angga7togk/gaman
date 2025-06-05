@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Get, MydController } from "_lib/decorators/routes/router.decorator";
+import { Get, MydController } from "myd/router";
 
 export default class HomeController extends MydController {
   constructor() {

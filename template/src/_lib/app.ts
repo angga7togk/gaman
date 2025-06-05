@@ -1,6 +1,6 @@
 import express from "express";
 import config from "../../myd.config"
-import { applyRoutes } from "_lib/decorators/routes/func";
+import { applyRoutes } from "myd/router";
 import controllers from "controllers";
 
 export const app = express();

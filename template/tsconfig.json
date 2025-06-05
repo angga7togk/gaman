@@ -16,9 +16,9 @@
 
     "paths": {
       "*": ["./src/*"], // Alias ke direktori src
-      "@router": ["./src/_lib/decorators/routes/router.decorator.ts"],
-      "@app": ["./src/_lib/app.ts"],
-      "@myd/*": ["./src/_lib/*"]
+      "myd/router": ["./src/_lib/decorators/routes/router.decorator.ts"],
+      "myd/app": ["./src/_lib/app.ts"],
+      "myd/*": ["./src/_lib/*"]
     }
   },
   "include": ["./src/**/*"], // File yang akan dikompilasi

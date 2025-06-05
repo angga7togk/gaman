@@ -35,7 +35,7 @@ npm run dev
 1. Create a new controller file in the `src/controllers` directory, e.g., `user.controller.ts`.
 
 ```ts
-import { MydRoute, Get, Post, MydController } from "@router";
+import { MydRoute, Get, Post, MydController } from "myd/router";
 import { Request, Response } from "express";
 
 export class UserController extends MydController {
@@ -66,7 +66,7 @@ export default [UserController];
 You can customize the project configuration using `myd.config.ts`:
 ```ts
 // @ts-check
-import { defineConfig } from "./src/_lib/config";
+import { defineConfig } from "myd/config";
 
 export default defineConfig({
   server: {

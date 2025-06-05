@@ -1,4 +1,4 @@
 // @ts-check
-import { defineConfig } from "./src/_lib/config";
+import { defineConfig } from "myd/config";
 
 export default defineConfig({});

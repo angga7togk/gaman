@@ -1,5 +1,5 @@
-import express from "express";
-import config from "../../myd.config"
+import express, { RequestHandler } from "express";
+import config from "../../myd.config";
 import { applyRoutes } from "myd/router";
 import controllers from "controllers";
 
@@ -7,12 +7,24 @@ export const app = express();
 
 const port = config.server?.port || 3431;
 
-applyRoutes(app, controllers);
+interface AppOptions {
+  pre?: (app: express.Express) => void;
+  middlewares?: express.RequestHandler[];
+  onListen?: (app: express.Express, error?: Error) => void;
+}
+export default function App(res?: AppOptions): express.Express {
+  res?.pre?.(app);
+  if (res?.middlewares) {
+    app.use(res?.middlewares);
+  }
 
-app.listen(port, config.server?.host || "localhost", () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+  // nganu semua routes atau kontroller
+  applyRoutes(app, controllers);
 
-export default function App(): express.Express {
+  app.listen(port, config.server?.host || "localhost", (error) => {
+    console.log(`Server is running on http://localhost:${port}`);
+    res?.onListen?.(app, error);
+  });
+
   return app;
 }

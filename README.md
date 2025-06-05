@@ -15,11 +15,7 @@
 Clone the repository and install dependencies:
 
 ```bash
-$ $it clone https://github.com/7TogkID/mydjs.git
-
-$ cd mydjs
-
-$ npm install
+$ npx create-mydjs
 ```
 
 ## Usage

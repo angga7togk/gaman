@@ -1,17 +1,25 @@
 {
-  "name": "mydjs",
-  "version": "1.0.0",
+  "name": "create-mydjs",
+  "version": "1.0.1",
   "main": "bin/create-myd.js",
+  "description": "MyD.JS is a backend project template built on Express and written in TypeScript.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "publish": "rm -rf node_modules && rm -rf template/node_modules && npm publish"
   },
   "bin": {
     "create-mydjs": "bin/create-myd.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "cli",
+    "typescript",
+    "express",
+    "template"
+  ],
+  "author": "angga7togk",
+  "repository": {
+    "url": "https://github.com/7TogkID/mydjs"
+  },
+  "license": "MIT",
   "dependencies": {
     "fs-extra": "^11.3.0",
     "inquirer": "^12.6.3"

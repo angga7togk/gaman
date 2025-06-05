@@ -1,6 +1,6 @@
 {
   "name": "create-mydjs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "bin/create-myd.js",
   "description": "MyD.JS is a backend project template built on Express and written in TypeScript.",
   "scripts": {

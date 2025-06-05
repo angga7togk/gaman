@@ -2,6 +2,9 @@
 
 **MyD.JS** is a backend project template built on **Express** and written in **TypeScript**, designed for simplicity and ease of use. This template provides a clean structure, useful decorators, and TypeScript support to help you quickly build scalable APIs.
 
+## Simple and minimalist project structure
+<img src=".github/images/image.png" />
+
 ## Features
 
 - **Express Framework**: Lightweight and flexible Node.js framework for building APIs.

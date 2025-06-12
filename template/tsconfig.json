@@ -16,10 +16,12 @@
 
     "paths": {
       "*": ["./src/*"], // Alias ke direktori src
-      "myd/router": ["./src/_lib/decorators/routes/router.decorator.ts"],
-      "myd/app": ["./src/_lib/app.ts"],
-      "myd/*": ["./src/_lib/*"]
+      "myd": ["src/_lib/app.ts"]
     }
+  },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": false
   },
   "include": ["./src/**/*"], // File yang akan dikompilasi
   "exclude": ["node_modules", "dist"] // File/direktori yang akan diabaikan

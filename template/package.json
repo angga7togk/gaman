@@ -2,9 +2,11 @@
   "name": "template",
   "version": "1.0.0",
   "main": "dist/src/main.js",
+  "type": "commonjs",
   "scripts": {
-    "dev": "nodemon src/main.ts",
-    "start": "ts-node src/main.ts"
+    "dev": "npx tsx src/_lib/cli/dev.ts ",
+    "build": "tsc --build --clean && tsc && tsc-alias",
+    "start": "node dist/main.ts"
   },
   "keywords": [],
   "author": "",
@@ -13,12 +15,15 @@
   "devDependencies": {
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@types/chalk": "^0.4.31",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.29",
+    "chalk": "^5.4.1",
     "express": "^5.1.0",
     "tsconfig-paths": "^4.2.0"
   }

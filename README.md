@@ -1,83 +1,116 @@
 # MyD.JS
 
-**MyD.JS** is a backend project template built on **Express** and written in **TypeScript**, designed for simplicity and ease of use. This template provides a clean structure, useful decorators, and TypeScript support to help you quickly build scalable APIs.
+Myd.JS is a lightweight, modular backend framework built on top of Express.js, designed to simplify development with TypeScript. It introduces a Tree Routing concept for better route management and a highly modular structure.
 
-## Simple and minimalist project structure
-<img src=".github/images/image.png" />
+---
 
 ## Features
 
-- **Express Framework**: Lightweight and flexible Node.js framework for building APIs.
-- **TypeScript Support**: Benefit from static typing and modern JavaScript features.
-- **Decorators**: Simplify route definitions with intuitive decorators like , `@Get`, `@Post`, `@Delete`, etc.
-- **Path Aliases**: Easily manage imports with custom aliases configured in `tsconfig.json`.
-- **Clean Structure**: Organized folder structure for controllers, middlewares, and utilities.
+- **TypeScript First:** ✅ Full TypeScript support.
+- **Express-Based:** Leverages the robustness and simplicity of Express.js.
+- **Modular Design:** Organize your backend into blocks for better maintainability.
+- **Tree Routing:** Define routes hierarchically for clarity and ease.
+- **Simple CLI Tool:** Start your project with a single command: `npx create-mydjs`.
 
-## Installation
+---
 
-Clone the repository and install dependencies:
+## Current Language Support
+
+| Language       | Status         |
+| -------------- | -------------- |
+| **TypeScript** | ✅ Ready       |
+| **JavaScript** | 🚧 In Progress |
+
+---
+
+## Getting Started
+
+### Installation
 
 ```bash
-$ npx create-mydjs
+npx create-mydjs
 ```
 
-## Usage
+This command will generate a new MyD.JS project with all the necessary setup.
 
-Start the development server:
+### Documentation
 
-```bash
-npm run dev
-```
+Refer to the following documentation for detailed guides and examples:
 
-## Add a Controller
+- [Block](./github/docs/en/block.md): Learn about defining and using blocks.
+- [Configuration](./github/docs/en/config.md): Customize your app settings.
+- [Logger](./github/docs/en/logger.md): Logging utilities for better debugging.
+- [Middleware](./github/docs/en/middleware.md): Apply and manage middleware in your app.
+- [onListen](./github/docs/en/onListen.md): Customize behavior when the server starts.
+- [pre](./github/docs/en/pre.md): Run code before the server starts listening.
+- [Routing](./github/docs/en/routing.md): Understand the Tree Routing concept.
 
-1. Create a new controller file in the `src/controllers` directory, e.g., `user.controller.ts`.
+---
+
+## Example
+
+### Highlight: `main.ts`
 
 ```ts
-import { MydRoute, Get, Post, MydController } from "myd/router";
-import { Request, Response } from "express";
+import mainBlock from "main.block";
+import App from "myd";
 
-export class UserController extends MydController {
-  constructor() {
-    super("/user"); // Base Path
-  }
+const app = App({
+  blocks: [mainBlock],
+  config: {
+    server: {
+      host: "0.0.0.0",
+      port: 3431,
+    },
+  },
+});
 
-  @Get("/") // path: `/user`
-  getAllUsers(req: Request, res: Response) {
-    res.send("Get all users");
-  }
-
-  @Post("/create") // path: `/user/create`
-  createUser(req: Request, res: Response) {
-    res.send("User created");
-  }
-}
+export default app;
 ```
 
-2. Register the controller in `src/controllers.ts`;
+### Highlight: `main.block.ts`
+
 ```ts
-import { UserController } from "./user.controller";
+import { defineBlock } from "myd";
+import express from "express";
 
-export default [UserController];
-```
+export default defineBlock({
+  path: "/", // base path
+  middlewares: [express.urlencoded()], // similar to express.use()
+  routes: {
+    "/": async (req, res) => {
+      res.json({ message: "❤️ Welcome to MyD.JS" });
+    },
 
-## Configuration
-You can customize the project configuration using `myd.config.ts`:
-```ts
-// @ts-check
-import { defineConfig } from "myd/config";
+    "/article/:id": {
+      GET: (req, res) => {
+        res.json({ message: "Article ID" });
+      },
+      POST: [
+        express.json(), // middleware for one route and one method
 
-export default defineConfig({
-  server: {
-    port: 3431, // opsional
-    host: "0.0.0.0", // opsional
+        (req, res) => {
+          res.json(req.body /**return JSON */);
+        },
+      ],
+      "/detail": {
+        POST: (req, res) => {
+          res.json({ message: req.params.id /** $ID from "/user/:id" */ });
+        },
+      },
+    },
   },
 });
 ```
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for details.
+---
 
 ## Contributing
-Contributions are welcome! Feel free to open issues or submit pull requests to improve MyD.JS.
 
+Contributions are welcome! Feel free to open issues or submit pull requests to improve the framework.
+
+---
+
+## License
+
+This project is licensed under the MIT License.

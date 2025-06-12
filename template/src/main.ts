@@ -1,14 +1,14 @@
-import App from "myd/app";
-import express from "express";
+import mainBlock from "main.block";
+import App from "myd";
 
 const app = App({
-  middlewares: [express.json(), express.urlencoded()], // similar to express.use()
-  pre(app){
-    // Enter the code before the server is running.
-    console.log("process app before listen.")
-  },
-  onListen(app, error) {
-    // Enter the code before the server is running
-    console.log("listen...")
-  },
+  blocks: [mainBlock],
+  config: {
+    server: {
+      host: '0.0.0.0',
+      port: 3431
+    }
+  }
 });
+
+export default app;

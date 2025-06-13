@@ -23,7 +23,7 @@ You can define middleware at the block level using the `middlewares:` key. Middl
 ### Example:
 
 ```ts
-import { defineBlock } from "myd";
+import { defineBlock } from "mydlib";
 import express from "express";
 
 export default defineBlock({

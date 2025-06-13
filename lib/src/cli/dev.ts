@@ -1,11 +1,11 @@
-import { Logger } from "_lib/utils";
+import { Logger } from "../utils";
 import nodemon from "nodemon";
 
 nodemon({
-  script: "src/main.ts", // Path ke file utama Anda
-  ext: "js ts json", // Ekstensi file yang dipantau
+  script: "src/main", // Nama file tanpa ekstensi
+  ext: "js,ts,json", // Ekstensi file yang dipantau
   ignore: ["node_modules/**", "dist/**"], // Folder yang tidak ingin dipantau
-  exec: "node", // Perintah eksekusi, ganti ke ts-node jika menggunakan TypeScript
+  exec: "node", // Untuk mendukung TypeScript, atau hanya "node" untuk JavaScript
 });
 
 nodemon

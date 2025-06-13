@@ -13,10 +13,9 @@
     "baseUrl": ".", // Basis jalur relatif
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-
+    "declaration": true, // kompile index.d.ts
     "paths": {
       "*": ["./src/*"], // Alias ke direktori src
-      "myd": ["src/_lib/app.ts"]
     }
   },
   "tsc-alias": {

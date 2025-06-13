@@ -27,9 +27,9 @@ You can define the `pre(app)` function in the `App` configuration object in your
 ```ts
 import mainBlock from "main.block";
 import express from "express";
-import App from "myd";
+import myd from "mydlib";
 
-const app = App({
+myd.serve({
   blocks: [mainBlock],
   pre: (app) => {
     // Example: Register a global middleware
@@ -42,8 +42,6 @@ const app = App({
     initializeDatabaseConnection();
   },
 });
-
-export default app;
 
 function initializeDatabaseConnection() {
   console.log("Database connected!");

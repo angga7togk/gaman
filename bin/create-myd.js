@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import inquirer from "inquirer";
 import { execSync } from "child_process";
+import chalk from "chalk";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,8 +30,37 @@ async function main() {
       default: "myd-project",
     },
   ]);
+  // ask user for language
+  const { language } = await inquirer.prompt([
+    {
+      type: "select",
+      choices: ["Typescript", "Javascript"],
+      name: "language",
+      message: "what language do you use?",
+      default: "Typescript",
+    },
+  ]);
+  // Ask user for install dependencies
+  const { installPack } = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "installPack",
+      message: "Install dependencies?",
+      default: true,
+    },
+  ]);
+  // Ask user for git init
+  const { gitInit } = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "gitInit",
+      message: "Initialize a new git repository?",
+      default: true,
+    },
+  ]);
 
-  const templateDir = path.resolve(__dirname, "../template");
+  const templateDirTs = path.resolve(__dirname, "../template/ts");
+  const templateDirJs = path.resolve(__dirname, "../template/js");
   const targetDir = path.resolve(process.cwd(), projectName);
 
   if (fs.existsSync(targetDir)) {
@@ -40,7 +70,11 @@ async function main() {
 
   // Copy template to target directory
   console.log(`\n📁 Creating project "${projectName}"...`);
-  await fs.copy(templateDir, targetDir);
+  if (language === "Typescript") {
+    await fs.copy(templateDirTs, targetDir);
+  } else {
+    await fs.copy(templateDirJs, targetDir);
+  }
 
   // Update package.json
   const packageJsonPath = path.join(targetDir, "package.json");
@@ -54,19 +88,25 @@ async function main() {
   }
 
   // Initialize Git
-  // console.log("\n🔧 Initializing Git repository...");
-  // execSync("git init", { cwd: targetDir });
-  // await fs.writeFile(path.join(targetDir, ".gitignore"), "node_modules\n");
-  // console.log("✅ Git repository initialized.");
+  if (gitInit) {
+    console.log("\n🔧 Initializing Git repository...");
+    execSync("git init", { cwd: targetDir });
+    await fs.writeFile(path.join(targetDir, ".gitignore"), "node_modules\n");
+    console.log("✅ Git repository initialized.");
+  }
 
   // Change directory and install dependencies
-  process.chdir(targetDir);
-  console.log("\n📦 Installing dependencies...");
-  try {
-    execSync("npm install", { stdio: "inherit" });
-    console.log("✅ Dependencies installed.");
-  } catch (err) {
-    console.error("❌ Error during npm install. Please try running it manually.");
+  if (installPack) {
+    process.chdir(targetDir);
+    console.log("\n📦 Installing dependencies...");
+    try {
+      execSync("npm install", { stdio: "inherit" });
+      console.log("✅ Dependencies installed.");
+    } catch (err) {
+      console.error(
+        "❌ Error during npm install. Please try running it manually."
+      );
+    }
   }
 
   // Final messages
@@ -76,8 +116,12 @@ async function main() {
   console.log("  npm run dev");
 }
 
+process.on("SIGINT", () => {
+  console.log("\n🛑 Stopping the process...");
+  process.exit(0);
+});
+
 main().catch((err) => {
-  console.error("\n❌ An unexpected error occurred:");
-  console.error(err);
+  console.log("\n🛑 Stopping the process...");
   process.exit(1);
 });

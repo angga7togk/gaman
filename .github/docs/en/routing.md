@@ -15,7 +15,7 @@ The `path:` field specifies the base path for the routes defined in the `routes:
 ### Example:
 
 ```ts
-import { defineBlock } from "myd";
+import { defineBlock } from "mydlib";
 import express from "express";
 
 export default defineBlock({

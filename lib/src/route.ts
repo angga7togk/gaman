@@ -35,17 +35,45 @@ export function isMydHandler(object: any): object is MydHandler {
   return typeof object === "function";
 }
 
+function translatePath(basePath: string, path: string): string {
+  // Pastikan basePath diawali dengan "/" dan tidak diakhiri dengan "/"
+  if (basePath !== "/") {
+    if (!basePath.startsWith("/")) {
+      basePath = `/${basePath}`;
+    }
+    if (basePath.endsWith("/")) {
+      basePath = basePath.slice(0, -1);
+    }
+  } else {
+    basePath = "";
+  }
+
+  // Pastikan path diawali dengan "/"
+  if (!path.startsWith("/")) {
+    path = `/${path}`;
+  }
+
+  // Gabungkan basePath dan path
+  return `${basePath}${path}`;
+}
+
 export function applyRoutes(
   app: express.Express,
   routes: MydRoutes,
   basePath = ""
 ) {
-  Object.entries(routes).forEach(([path, routeOrHandler]) => {
-    const fullPath = `${basePath}${path}`; // Menggabungkan basePath dan path saat ini
+  // Dapatkan route yang lebih spesifik terlebih dahulu
+  const sortedRoutes = Object.entries(routes).sort(([pathA], [pathB]) => {
+    // Route yang lebih panjang didaftarkan lebih dulu
+    return pathB.length - pathA.length;
+  });
+
+  sortedRoutes.forEach(([path, routeOrHandler]) => {
+    const fullPath = translatePath(basePath, path); // Menggabungkan basePath dan path saat ini
 
     if (isMydHandler(routeOrHandler) || Array.isArray(routeOrHandler)) {
       // Jika langsung handler atau array of handler
-      app.use(
+      app.all( // ganti pakai all kalau paka use bahaya
         fullPath,
         ...(Array.isArray(routeOrHandler) ? routeOrHandler : [routeOrHandler])
       );
@@ -61,7 +89,7 @@ export function applyRoutes(
             ...(Array.isArray(handlers) ? handlers : [handlers])
           );
         } else {
-          // nested routes
+          // Nested routes
           applyRoutes(app, { [method]: handlers } as MydRoutes, fullPath);
         }
       });

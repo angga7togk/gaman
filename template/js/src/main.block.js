@@ -1,17 +1,16 @@
-import { defineBlock } from "myd";
+import { defineBlock } from "mydlib";
 import express from "express";
 
 export default defineBlock({
-  path: "/", // base path
+  path: "/",
   middlewares: [express.urlencoded()], // similar to express.use()
   routes: {
-
     "/": async (req, res) => {
       res.json({ message: "❤️ Welcome to MyD.JS" });
     },
 
     "/article/:id": {
-      GET:  (req, res) => {
+      GET: (req, res) => {
         res.json({ message: "Article ID" });
       },
       POST: [
@@ -22,7 +21,7 @@ export default defineBlock({
         },
       ],
       "/detail": {
-        POST: (req, res) => {
+        GET: (req, res) => {
           res.json({ message: req.params.id /** $ID from "/user/:id" */ });
         },
       },

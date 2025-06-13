@@ -11,15 +11,15 @@ The `config` object is used to define settings for your application. It is inclu
 ### Example:
 
 ```ts
-const app = App({
-  blocks: [mainBlock],
+myd.serve({
   config: {
     server: {
-      host: '0.0.0.0', // Server host address
-      port: 3331       // Server listening port
-    }
-  }
+      host: "0.0.0.0",
+      port: 3431,
+    },
+  },
 });
+
 ```
 
 ---

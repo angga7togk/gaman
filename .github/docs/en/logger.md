@@ -11,7 +11,7 @@ The `Logger` object includes several methods for logging different types of mess
 ### Importing Logger
 
 ```ts
-import { Logger } from "myd";
+import { Logger } from "mydlib";
 ```
 
 ---

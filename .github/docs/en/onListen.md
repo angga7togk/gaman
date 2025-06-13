@@ -30,9 +30,9 @@ You can define the `onListen` function in the `App` configuration object in your
 
 ```ts
 import mainBlock from "main.block";
-import App from "myd";
+import myd from "mydlib";
 
-const app = App({
+myd.serve({
   blocks: [mainBlock],
   onListen: (app, error) => {
     if (error) {
@@ -48,8 +48,6 @@ const app = App({
     console.log("Server is ready to handle requests.");
   },
 });
-
-export default app;
 ```
 
 In this example:

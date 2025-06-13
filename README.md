@@ -1,12 +1,13 @@
 # MyD.JS
 
-Myd.JS is a lightweight, modular backend framework built on top of Express.js, designed to simplify development with TypeScript. It introduces a Tree Routing concept for better route management and a highly modular structure.
+Myd.JS is a lightweight, modular backend framework built on top of Express.js, designed to simplify development with Javascript. It introduces a Tree Routing concept for better route management and a highly modular structure.
 
 ---
 
 ## Features
 
-- **TypeScript First:** ✅ Full TypeScript support.
+- **TypeScript:** ✅ Full TypeScript support.
+- **JavaScript:** ✅ Full JavaScript support.
 - **Express-Based:** Leverages the robustness and simplicity of Express.js.
 - **Modular Design:** Organize your backend into blocks for better maintainability.
 - **Tree Routing:** Define routes hierarchically for clarity and ease.
@@ -16,10 +17,10 @@ Myd.JS is a lightweight, modular backend framework built on top of Express.js, d
 
 ## Current Language Support
 
-| Language       | Status         |
-| -------------- | -------------- |
-| **TypeScript** | ✅ Ready       |
-| **JavaScript** | 🚧 In Progress |
+| Language       | Status   |
+| -------------- | -------- |
+| **TypeScript** | ✅ Ready |
+| **JavaScript** | ✅ Ready |
 
 ---
 
@@ -37,13 +38,13 @@ This command will generate a new MyD.JS project with all the necessary setup.
 
 Refer to the following documentation for detailed guides and examples:
 
-- [Block](./github/docs/en/block.md): Learn about defining and using blocks.
-- [Configuration](./github/docs/en/config.md): Customize your app settings.
-- [Logger](./github/docs/en/logger.md): Logging utilities for better debugging.
-- [Middleware](./github/docs/en/middleware.md): Apply and manage middleware in your app.
-- [onListen](./github/docs/en/onListen.md): Customize behavior when the server starts.
-- [pre](./github/docs/en/pre.md): Run code before the server starts listening.
-- [Routing](./github/docs/en/routing.md): Understand the Tree Routing concept.
+- [Block](/./github/docs/en/block.md): Learn about defining and using blocks.
+- [Configuration](/./github/docs/en/config.md): Customize your app settings.
+- [Logger](/./github/docs/en/logger.md): Logging utilities for better debugging.
+- [Middleware](/./github/docs/en/middleware.md): Apply and manage middleware in your app.
+- [onListen](/./github/docs/en/onListen.md): Customize behavior when the server starts.
+- [pre](/./github/docs/en/pre.md): Run code before the server starts listening.
+- [Routing](/./github/docs/en/routing.md): Understand the Tree Routing concept.
 
 ---
 
@@ -53,9 +54,9 @@ Refer to the following documentation for detailed guides and examples:
 
 ```ts
 import mainBlock from "main.block";
-import App from "myd";
+import myd from "mydlib";
 
-const app = App({
+myd.serve({
   blocks: [mainBlock],
   config: {
     server: {
@@ -64,14 +65,12 @@ const app = App({
     },
   },
 });
-
-export default app;
 ```
 
 ### Highlight: `main.block.ts`
 
 ```ts
-import { defineBlock } from "myd";
+import { defineBlock } from "mydlib";
 import express from "express";
 
 export default defineBlock({
@@ -94,7 +93,7 @@ export default defineBlock({
         },
       ],
       "/detail": {
-        POST: (req, res) => {
+        GET: (req, res) => {
           res.json({ message: req.params.id /** $ID from "/user/:id" */ });
         },
       },

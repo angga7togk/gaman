@@ -11,7 +11,7 @@ To define a new block, create a file (e.g., `user.block.ts`) and use the `define
 ### Example:
 
 ```ts
-import { defineBlock } from "myd";
+import { defineBlock } from "mydlib";
 
 export default defineBlock({
   path: '/user' // base path
@@ -30,13 +30,12 @@ After defining a block, it needs to be registered in the main application file (
 
 ```ts
 import mainBlock from "main.block";
-import App from "myd";
+import myd from "mydlib";
 
-const app = App({
-  blocks: [mainBlock], // register your block here
+myd.serve({
+  blocks: [mainBlock] // register your blocks in here
 });
 
-export default app;
 ```
 
 Here, the `mainBlock` is imported and registered in the `blocks` array. This makes the block available as part of the application.

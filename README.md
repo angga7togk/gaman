@@ -6,8 +6,6 @@ Myd.JS is a lightweight, modular backend framework built on top of Express.js, d
 
 ## Features
 
-- **TypeScript:** ✅ Full TypeScript support.
-- **JavaScript:** ✅ Full JavaScript support.
 - **Express-Based:** Leverages the robustness and simplicity of Express.js.
 - **Modular Design:** Organize your backend into blocks for better maintainability.
 - **Tree Routing:** Define routes hierarchically for clarity and ease.
@@ -36,19 +34,7 @@ This command will generate a new MyD.JS project with all the necessary setup.
 
 ### Documentation
 
-Refer to the following documentation for detailed guides and examples:
-
-- [Block](/./github/docs/en/block.md): Learn about defining and using blocks.
-- [Configuration](/./github/docs/en/config.md): Customize your app settings.
-- [Logger](/./github/docs/en/logger.md): Logging utilities for better debugging.
-- [Middleware](/./github/docs/en/middleware.md): Apply and manage middleware in your app.
-- [onListen](/./github/docs/en/onListen.md): Customize behavior when the server starts.
-- [pre](/./github/docs/en/pre.md): Run code before the server starts listening.
-- [Routing](/./github/docs/en/routing.md): Understand the Tree Routing concept.
-
----
-
-## Example
+Refer to the following documentation for detailed guides: [Documentations](https://github.com/7TogkID/mydjs/wiki)
 
 ### Highlight: `main.ts`
 

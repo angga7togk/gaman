@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import inquirer from "inquirer";
 import { execSync } from "child_process";
-import chalk from "chalk";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,12 +12,12 @@ const __dirname = path.dirname(__filename);
 async function main() {
   console.clear();
   console.log(`
-  ███╗░░░███╗██╗░░░██╗██████╗░░░░░░░░░██╗░██████╗
-  ████╗░████║╚██╗░██╔╝██╔══██╗░░░░░░░░██║██╔════╝
-  ██╔████╔██║░╚████╔╝░██║░░██║░░░░░░░░██║╚█████╗░
-  ██║╚██╔╝██║░░╚██╔╝░░██║░░██║░░░██╗░░██║░╚═══██╗
-  ██║░╚═╝░██║░░░██║░░░██████╔╝██╗╚█████╔╝██████╔╝
-  ╚═╝░░░░░╚═╝░░░╚═╝░░░╚═════╝░╚═╝░╚════╝░╚═════╝░
+  ░██████╗░░█████╗░███╗░░░███╗░█████╗░███╗░░██╗
+  ██╔════╝░██╔══██╗████╗░████║██╔══██╗████╗░██║
+  ██║░░██╗░███████║██╔████╔██║███████║██╔██╗██║
+  ██║░░╚██╗██╔══██║██║╚██╔╝██║██╔══██║██║╚████║
+  ╚██████╔╝██║░░██║██║░╚═╝░██║██║░░██║██║░╚███║
+  ░╚═════╝░╚═╝░░╚═╝╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝
 `);
 
   // Ask user for project name
@@ -27,7 +26,7 @@ async function main() {
       type: "input",
       name: "projectName",
       message: "What is your project name?",
-      default: "myd-project",
+      default: "./gaman-project",
     },
   ]);
   // ask user for language

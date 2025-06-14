@@ -1,58 +1,94 @@
-import express from "express";
-import { MydConfig } from "./config";
-import { applyBlocks, MydBlock } from "./block";
-import { Logger } from "./utils";
+import http from "http";
+import { createRequest } from "./router/request/requestExpand";
+import { Response } from "./router/response/response";
+import type { Block } from "./block/block";
+import AppRouter from "./router/AppRouter";
+import { getNetworkAddress } from "./utils/networkUtils";
+
+export interface Config {
+  server?: {
+    host?: string;
+    port?: number;
+  };
+}
 
 export interface AppOptions {
-  blocks?: MydBlock[];
-  pre?: (app: express.Express) => any | Promise<any>;
-  onListen?: (app: express.Express, error?: Error) => any | Promise<any>;
-  config?: MydConfig;
+  blocks?: Block[];
+  // pre?: (app: express.Express) => any | Promise<any>;
+  // onListen?: (app: express.Express, error?: Error) => any | Promise<any>;
+  config?: Config;
 }
+
+const defaultOptions: AppOptions = {
+  config: {
+    server: {
+      host: "localhost",
+      port: 3431,
+    },
+  },
+};
+
+const appRouter = new AppRouter();
 
 // Asynchronous server
-export async function serve(options?: AppOptions): Promise<express.Express> {
-  const app = express();
-  const config = options?.config || {};
+export async function serv(options: AppOptions = defaultOptions): Promise<any> {
+  const blocks: Block[] = options?.blocks || [];
+  for (const block of blocks) {
+    // Sort routes: wildcard routes should be processed last
 
-  if (options?.pre) {
-    await options.pre(app);
+    appRouter.applyRoutes(block.routes || {}, block.path); // register routes dari block
   }
 
-  applyBlocks(app, options?.blocks || []);
+  const server = http.createServer(async (__req, __res) => {
+    Response.__setServerResponse(__res); // init server response
+    const req = await createRequest(appRouter, __req);
 
-  const port = config.server?.port || 3431;
-  app.listen(port, config.server?.host || "localhost", async (error) => {
-    Logger.info(`Server is running on http://localhost:${port}`);
-    await options?.onListen?.(app, error);
-  });
-  return app;
-}
+    const method = req.method;
+    const url = req.url;
 
-// Synchronous server
-export function serveSync(options: AppOptions): express.Express {
-  const app = express();
-  const config = options?.config || {};
+    // ngambil routes yang udha di register si blocks
+    for (const route of appRouter.getRoutes()) {
+      const match = route.regexPath.exec(url);
 
-  if (options?.pre) {
-    const preResult = options.pre(app);
-    if (preResult instanceof Promise) {
-      throw new Error("Pre function in serveSync must not be asynchronous.");
-    }
-  }
-
-  applyBlocks(app, options?.blocks || []);
-
-  const port = config.server?.port || 3431;
-  app.listen(port, config.server?.host || "localhost", (error) => {
-    Logger.info(`Server is running on http://localhost:${port}`);
-    if (options?.onListen) {
-      const onListenResult = options.onListen(app, error);
-      if (onListenResult instanceof Promise) {
-        throw new Error("onListen function in serveSync must not be asynchronous.");
+      if (match && (route.method === method || route.method === "ALL")) {
+        for (const handler of route.handlers) {
+          handler({
+            request: req,
+            params: req.params,
+            query: req.query,
+          });
+        }
+        return;
       }
     }
+
+    // Jika tidak ada route yang cocok
+    return Response.status(404).text("404 Not Found");
   });
 
-  return app;
+  const host =
+    options.config?.server?.host || defaultOptions.config?.server?.host;
+  const port =
+    options.config?.server?.port || defaultOptions.config?.server?.port!;
+  server.listen(port, host, () => {
+    const address = getNetworkAddress(host, port);
+    const mode = (process.env.NODE_ENV as any) || "development";
+
+    const logMessage = `
+\x1b[36m> Ready on:\x1b[0m
+  \x1b[32mLocal:\x1b[0m      http://localhost:${port}
+  ${
+    address
+      ? `\x1b[32mNetwork:\x1b[0m    http://${address.host}:${address.port}`
+      : "\x1b[31mNetwork:\x1b[0m    Unavailable"
+  }
+\x1b[36mEnvironment:\x1b[0m ${mode || "development"}
+`;
+
+    console.log(logMessage.trim());
+  });
 }
+
+export default {
+  serv,
+};

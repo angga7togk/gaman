@@ -1,7 +1,7 @@
 import mainBlock from "main.block";
-import myd from "mydlib";
+import gaman from "gaman";
 
-myd.serve({
+gaman.serv({
   blocks: [mainBlock],
   config: {
     server: {

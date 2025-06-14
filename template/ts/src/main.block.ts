@@ -1,28 +1,25 @@
-import { defineBlock } from "mydlib";
-import express from "express";
+import { defineBlock, Response } from "gaman";
 
 export default defineBlock({
-  path: "/",
-  middlewares: [express.urlencoded()], // similar to express.use()
+  path: "/user",
+  middlewares: [], // similar to express.use()
   routes: {
-    "/": async (req, res) => {
-      res.json({ message: "❤️ Welcome to MyD.JS" });
+    "/":(ctx) => {
+      Response.json({ message: "❤️ Welcome to MyD.JS" });
     },
 
     "/article/:id": {
-      GET: (req, res) => {
-        res.json({ message: "Article ID" });
+      GET: (ctx) => {
+        Response.json({ message: "Article ID" });
       },
       POST: [
-        express.json(), // middleware for one route and one method
-
-        (req, res) => {
-          res.json(req.body /**return JSON */);
+        (ctx) => {
+          Response.json(ctx.request.body /**return JSON */);
         },
       ],
       "/detail": {
-        GET: (req, res) => {
-          res.json({ message: req.params.id /** $ID from "/user/:id" */ });
+        GET: (ctx) => {
+          Response.json({ message: ctx.request.params.id /** $ID from "/user/:id" */ });
         },
       },
     },

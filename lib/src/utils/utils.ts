@@ -17,6 +17,6 @@ export function formatPath(path: string): string {
   if (formattedPath === "") {
     formattedPath = "/";
   }
-
+  
   return formattedPath;
 }

@@ -33,6 +33,7 @@ export class Response {
     this._headers["Content-Type"] = "application/json";
     this._body = JSON.stringify(data);
     this.send();
+    return true;
   }
 
   public static text(data: string, options?: ResponseOptions) {
@@ -40,6 +41,7 @@ export class Response {
     this._headers["Content-Type"] = "text/plain";
     this._body = data;
     this.send();
+    return true;
   }
 
   public static html(data: string, options?: ResponseOptions) {
@@ -47,6 +49,7 @@ export class Response {
     this._headers["Content-Type"] = "text/html";
     this._body = data;
     this.send();
+    return true;
   }
 
   public static buffer(
@@ -65,6 +68,7 @@ export class Response {
     this._headers["Content-Length"] = buffer.length.toString();
     this._res.writeHead(this._status, this._headers);
     this._res.end(buffer);
+    return true;
   }
 
   public static redirect(location: string, status: number = 302) {
@@ -77,6 +81,7 @@ export class Response {
     this._status = status;
     this._headers["Location"] = location;
     this.send();
+    return true;
   }
 
   private static applyOptions(options?: ResponseOptions) {
@@ -90,7 +95,7 @@ export class Response {
     }
   }
 
-  private static send(data?: any) {
+  public static send(data?: any) {
     if (!this._res) {
       throw new Error(
         "Server response object is not set. Call __setServerResponse first."
@@ -98,6 +103,7 @@ export class Response {
     }
     this._res.writeHead(this._status, this._headers);
     this._res.end(data || this._body);
+    return true;
   }
 
   static __setServerResponse(res: http.ServerResponse) {

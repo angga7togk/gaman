@@ -1,7 +1,9 @@
-import type { Routes } from "../router/router";
+import type { RequestHandler, Router, Routes } from "../router/router";
 
 export interface Block {
+  domain?: string;
   path?: string;
+  all?: Router | RequestHandler | RequestHandler[];
   routes?: Routes;
 }
 

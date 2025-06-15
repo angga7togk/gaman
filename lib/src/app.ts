@@ -35,8 +35,11 @@ export async function serv(options: AppOptions = defaultOptions): Promise<any> {
   const blocks: Block[] = options?.blocks || [];
   for (const block of blocks) {
     // Sort routes: wildcard routes should be processed last
-
-    appRouter.applyRoutes(block.routes || {}, block.path); // register routes dari block
+    const routes = block.routes || {};
+    if (block.all) {
+      routes["*"] = block.all;
+    }
+    appRouter.applyRoutes(routes || {}, block.path); // register routes dari block
   }
 
   const server = http.createServer(async (__req, __res) => {
@@ -49,19 +52,20 @@ export async function serv(options: AppOptions = defaultOptions): Promise<any> {
     // ngambil routes yang udha di register si blocks
     for (const route of appRouter.getRoutes()) {
       const match = route.regexPath.exec(url);
-
       if (match && (route.method === method || route.method === "ALL")) {
         for (const handler of route.handlers) {
-          handler({
+          const res = await handler({
             request: req,
             params: req.params,
             query: req.query,
           });
+          if (typeof res === "boolean") {
+            return;
+          }
         }
         return;
       }
     }
-
     // Jika tidak ada route yang cocok
     return Response.status(404).text("404 Not Found");
   });

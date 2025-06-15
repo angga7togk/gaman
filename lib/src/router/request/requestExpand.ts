@@ -41,9 +41,21 @@ export async function createRequest(
     query: Object.fromEntries(url.searchParams.entries()),
     params,
     body: body || null,
-    json: body ? JSON.parse(body) : {},
+    json: () => {
+      try {
+        return body ? JSON.parse(body) : {};
+      } catch (error) {
+        return {};
+      }
+    },
     form: getFormData(contentType, body),
-    getJson: <T>() => (body ? (JSON.parse(body) as T) : ({} as T)),
+    getJson: <T>() => {
+      try {
+        return body ? (JSON.parse(body) as T) : ({} as T);
+      } catch (error) {
+        return {} as T;
+      }
+    },
     getForm: <T>() => getFormData<T>(contentType, body),
     cookies: {}, // Parsing dari `req.headers.cookie`
     ip: req.socket.remoteAddress || "",

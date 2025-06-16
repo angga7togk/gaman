@@ -1,16 +1,26 @@
 {
   "name": "gaman",
-  "module": "./dist/index.js",
-  "version": "0.0.7",
+  "version": "0.0.11",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc --build --clean && node build.js && node build-cli.js && tsc --emitDeclarationOnly --declaration --outDir dist",
-    "test": "bun --watch test/main.ts"
+    "clean": "rimraf dist",
+    "build:cjs_ts": "tsc --project tsconfig.cjs.json && tsc-alias -p tsconfig.cjs.json",
+    "build:esm_ts": "tsc --project tsconfig.esm.json && tsc-alias -p tsconfig.esm.json",
+    "build:cjs": "node build-cjs.js",
+    "build:esm": "node build-esm.js",
+    "build": "npm run clean  && npm run build:cjs && npm run build:esm && tsc"
   },
   "author": "angga7togk",
   "license": "ISC",
@@ -21,15 +31,17 @@
     "@types/bun": "latest",
     "@types/formidable": "^3.4.5",
     "esbuild": "^0.25.5",
+    "rimraf": "^6.0.1",
     "tsc-alias": "^1.8.16",
     "tslib": "^2.8.1",
     "tsx": "^4.20.3"
   },
   "peerDependencies": {
-    "typescript": "^5.8.3",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
-    "formidable": "^3.5.4"
+    "formidable": "^3.5.4",
+    "glob": "^11.0.3"
   }
 }

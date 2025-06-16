@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "main": "src/main.js",
   "type": "module",
-  "scripts": {
-    "dev": "node node_modules/gaman/dist/cli.cjs"
-  },
   "keywords": [],
   "author": "",
+  "scripts": {
+    "dev": "gaman dev"
+  },
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "gaman": "^0.0.7"
+    "gaman": "^0.0.11"
   }
 }

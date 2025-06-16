@@ -11,13 +11,7 @@ export * from "./tree/tree";
 export * from "./handler/requestHandler"
 // export * from "./middleware/middleware";
 
-declare global {
-  var Res: typeof Response;
-}
-global.Res = Response as any;
-
 import { serv } from "./app";
-import { Response } from "./router/response/response";
 export default {
   serv,
   serve: serv,

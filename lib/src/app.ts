@@ -1,7 +1,7 @@
 import { createRequest } from "./router/request/requestExpand";
 import { Response } from "./router/response/response";
 import type { Block } from "./block/block";
-import AppRouter from "./router/AppRouter";
+import { AppRouter } from "./router/AppRouter";
 import { getNetworkAddress } from "./utils/networkUtils";
 import { createServer } from "./server/server";
 import { requestHandler } from "./handler/requestHandler";

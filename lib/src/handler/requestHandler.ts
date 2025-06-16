@@ -1,4 +1,4 @@
-import AppRouter from "../router/AppRouter";
+import { AppRouter } from "../router/AppRouter";
 import { Context } from "../router/router";
 import { Logger } from "../utils/Logger";
 

@@ -1,4 +1,4 @@
-import app from "gaman";
+import app from "../dist/esm/index";
 import mainBlock from "./main.block";
 
 app.serv({

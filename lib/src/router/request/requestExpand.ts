@@ -2,7 +2,7 @@ import querystring from "node:querystring";
 import type { Request } from "./request";
 import http from "http";
 import { parseBody, parseMultipartForm } from "./requestParsing";
-import type AppRouter from "../AppRouter";
+import type { AppRouter } from "../AppRouter";
 
 export async function createRequest(
   appRouter: AppRouter,
@@ -15,7 +15,7 @@ export async function createRequest(
 
   // ini harus salah satu dijalanin soalnya 2 2 nya pakai anu yang sama :V
   let body: any;
-  if (contentType.includes("multipart/form-data") && method !== 'HEAD') {
+  if (contentType.includes("multipart/form-data") && method !== "HEAD") {
     // tidak di proses ketika method head
     // karna head tidak mebawa body
     body = await parseMultipartForm(req);

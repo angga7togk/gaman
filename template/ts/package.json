@@ -4,9 +4,7 @@
   "main": "dist/src/main.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "npx tsx node_modules/gaman/dist/cli.cjs",
-    "build": "tsc --build --clean && tsc && tsc-alias",
-    "start": "node dist/main.js"
+    "dev": "gaman dev --exec tsx"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +17,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "gaman": "^0.0.5"
+    "gaman": "^0.0.11"
   }
 }

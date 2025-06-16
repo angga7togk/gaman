@@ -3,7 +3,8 @@ import { defineBlock, Response } from "gaman";
 export default defineBlock({
   path: "/",
   all: (ctx, next) => {
-    console.log("middleware ALL"), next();
+    console.log("middleware ALL");
+    next();
   },
   routes: {
     "/": (ctx) => {

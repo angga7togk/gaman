@@ -10,7 +10,7 @@ export interface RouteRegister {
   paramKeys: string[]; // Array nama parameter dalam path (misal :id)
 }
 
-export default class AppRouter {
+export class AppRouter {
   /**
    * Menyimpan semua rute yang terdaftar, termasuk middleware
    */

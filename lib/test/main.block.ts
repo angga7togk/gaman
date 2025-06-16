@@ -1,38 +1,49 @@
-import { defineBlock } from "../src/block/block";
-import mainTree from "./tree/main.tree";
+import apiTree from "./tree/api.tree";
+import { Logger, defineBlock, Response } from "gaman";
 
 export default defineBlock({
-  path: "/",
-  all: () => {
-    console.log("Anu sa");
+  path: "/", // base path
+  all: async (ctx, next) => {
+    Logger.log("anu1");
+    return next();
   },
   routes: {
-    "/": async (ctx) => {
-      return Res.json({ message: "Welcome to the homepage" });
+    "*": {
+      GET: async (ctx, next) => {
+        Logger.log("anu2");
+        return next();
+      },
     },
     "/1": {
-      GET: (ctx) => {
-        return Res.json({ no: 1 });
+      POST: (ctx) => {
+        new Response("Hahah", { status: 200 }).send();
       },
       "/2": {
         GET: (ctx) => {
-          return Res.json({ no: 2 });
+          return Response.json({ no: 2 });
         },
         "/3": {
           GET: (ctx) => {
-            return Res.json({ no: 3 });
+            return Response.json({ no: 3 });
           },
         },
       },
     },
-    "/about/*": () => {
-      return Res.json({ message: "OK" });
-    },
-    "/about/jir": {
-      GET: () => {
-        return Res.text("Berhas si");
+    "/about/*": {
+      POST: (ctx, next) => {
+        Logger.log("about post middleware");
+        next();
       },
     },
-    "/api": mainTree,
+    "/about": (ctx, next) => {
+      Logger.log("haha");
+      next();
+    },
+    "/jir/about": {
+      GET: () => {
+        return Response.text("Berhas si");
+      },
+    },
+    "/api": apiTree,
   },
 });

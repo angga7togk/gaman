@@ -1,16 +1,15 @@
 {
   "name": "gaman",
   "module": "./dist/index.js",
+  "version": "0.0.7",
   "type": "module",
-  "version": "0.0.1",
-  
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build --clean && node build.js && tsc --emitDeclarationOnly --declaration --outDir dist",
+    "build": "tsc --build --clean && node build.js && node build-cli.js && tsc --emitDeclarationOnly --declaration --outDir dist",
     "test": "bun --watch test/main.ts"
   },
   "author": "angga7togk",
@@ -27,7 +26,8 @@
     "tsx": "^4.20.3"
   },
   "peerDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "nodemon": "^3.1.10"
   },
   "dependencies": {
     "formidable": "^3.5.4"

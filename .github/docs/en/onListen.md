@@ -1,6 +1,6 @@
 # `onListen(app, error)` Function Documentation
 
-The `onListen(app, error)` function is a lifecycle hook in the MyD framework that is executed after the server begins listening for incoming requests. It provides a mechanism to handle post-listening events, such as logging, error handling, or additional setup tasks.
+The `onListen(app, error)` function is a lifecycle hook in the Gamman framework that is executed after the server begins listening for incoming requests. It provides a mechanism to handle post-listening events, such as logging, error handling, or additional setup tasks.
 
 ---
 

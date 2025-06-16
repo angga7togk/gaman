@@ -1,4 +1,4 @@
-import { formatPath } from "@/utils/utils";
+import { formatPath } from "../utils/utils";
 import type { RequestHandler, Router, Routes } from "./router";
 
 // Interface untuk merepresentasikan route yang telah terdaftar
@@ -94,6 +94,7 @@ export default class AppRouter {
 
     if (path.includes("*")) {
       // Jika path mengandung wildcard, daftarkan sebagai middleware
+      
       this.middlewares.push(data);
     } else {
       // Jika tidak, daftarkan sebagai rute biasa
@@ -154,19 +155,33 @@ export default class AppRouter {
     this.routes.forEach((route) => {
       this.middlewares.forEach((middleware) => {
         const wildCardType = this.wildCardOn(middleware.path);
+        
 
-        if (wildCardType === "start" && route.path.endsWith(middleware.path.replace("*/", ""))) {
-          // Middleware berbentuk `*/path`
-          route.handlers.unshift(...middleware.handlers);
-        } else if (wildCardType === "end" && route.path.startsWith(middleware.path.replace("/*", ""))) {
-          // Middleware berbentuk `/path/*`
-          route.handlers.unshift(...middleware.handlers);
-        } else if (wildCardType === "all") {
-          // Middleware berbentuk `*`
-          route.handlers.unshift(...middleware.handlers);
+        if (middleware.method === route.method || middleware.method === "ALL") {
+          if (
+            wildCardType === "start" &&
+            route.path.endsWith(middleware.path.replace("*/", ""))
+          ) {
+            // Middleware berbentuk `*/path`
+            route.handlers.unshift(...middleware.handlers);
+          } else if (
+            wildCardType === "end" &&
+            route.path.startsWith(middleware.path.replace("/*", ""))
+          ) {
+            // Middleware berbentuk `/path/*`
+            route.handlers.unshift(...middleware.handlers);
+          } else if (wildCardType === "all") {
+            // Middleware berbentuk `*`
+            route.handlers.unshift(...middleware.handlers);
+          }
         }
       });
     });
+
+    // setelah proses selesai clear semua data middleware
+    // karna sudah di migrasi ke data routes jadi gaperlu ada
+    // karna ntar kalau applyRoutes lagi bakal jadi 2x
+    this.middlewares = [];
   }
 
   /**

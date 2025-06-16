@@ -1,11 +1,13 @@
 import { defineBlock, Response } from "gaman";
 
 export default defineBlock({
-  path: "/user",
-  middlewares: [], // similar to express.use()
+  path: "/",
+  all: (ctx, next) => {
+    console.log("middleware ALL"), next();
+  },
   routes: {
-    "/":(ctx) => {
-      Response.json({ message: "❤️ Welcome to MyD.JS" });
+    "/": (ctx) => {
+      Response.json({ message: "❤️ Welcome to GamanJS" });
     },
 
     "/article/:id": {
@@ -14,12 +16,14 @@ export default defineBlock({
       },
       POST: [
         (ctx) => {
-          Response.json(ctx.request.body /**return JSON */);
+          Response.json(ctx.request.json /**return JSON */, { status: 200 });
         },
       ],
       "/detail": {
         GET: (ctx) => {
-          Response.json({ message: ctx.request.params.id /** $ID from "/user/:id" */ });
+          Response.json({
+            message: ctx.request.pathname /** $ID from "/user/:id" */,
+          });
         },
       },
     },

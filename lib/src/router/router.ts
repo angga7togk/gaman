@@ -1,6 +1,9 @@
 import type { Request } from "./request/request";
 
-export type RequestHandler = (ctx: Context) => boolean | Promise<boolean> | any;
+export type RequestHandler = (
+  ctx: Context,
+  next: () => void
+) => any; // true = stop, false = next()
 
 export interface Context {
   request: Request;

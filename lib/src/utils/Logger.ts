@@ -1,4 +1,4 @@
-const Logger = {
+export const Logger = {
   level: "debug", // Bisa diatur ke 'info', 'debug', atau 'error'
 
   log: (message: any) => Logger.info(message),
@@ -28,5 +28,3 @@ const Logger = {
     return levels[level]! <= levels[Logger.level]!;
   },
 };
-
-export default Logger;

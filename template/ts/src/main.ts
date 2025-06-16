@@ -3,10 +3,7 @@ import gaman from "gaman";
 
 gaman.serv({
   blocks: [mainBlock],
-  config: {
-    server: {
-      host: "0.0.0.0",
-      port: 3431,
-    },
+  server: {
+    port: 3431,
   },
 });

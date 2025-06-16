@@ -1,6 +1,6 @@
 # Logger Documentation
 
-The `Logger` utility in the MyD framework provides a simple and consistent way to log messages at various levels of severity. By leveraging `chalk`, it ensures that logs are color-coded for better readability.
+The `Logger` utility in the Gaman framework provides a simple and consistent way to log messages at various levels of severity. By leveraging `chalk`, it ensures that logs are color-coded for better readability.
 
 ---
 
@@ -11,7 +11,7 @@ The `Logger` object includes several methods for logging different types of mess
 ### Importing Logger
 
 ```ts
-import { Logger } from "mydlib";
+import { Logger } from "gaman";
 ```
 
 ---

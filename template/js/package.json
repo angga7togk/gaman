@@ -4,22 +4,13 @@
   "main": "src/main.js",
   "type": "module",
   "scripts": {
-    "dev": "node node_modules/mydlib/cli/dev.js"
+    "dev": "node node_modules/gaman/dist/cli.cjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
-  "devDependencies": {
-    "@types/express": "^5.0.3",
-    "nodemon": "^3.1.10",
-    "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.16",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
-  },
   "dependencies": {
-    "express": "^5.1.0",
-    "mydlib": "^1.0.3"
+    "gaman": "^0.0.7"
   }
 }

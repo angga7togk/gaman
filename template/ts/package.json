@@ -4,9 +4,9 @@
   "main": "dist/src/main.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "npx tsx node_modules/mydlib/cli/dev.js",
+    "dev": "npx tsx node_modules/gaman/dist/cli.cjs",
     "build": "tsc --build --clean && tsc && tsc-alias",
-    "start": "node dist/main.ts"
+    "start": "node dist/main.js"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +17,8 @@
     "tsc-alias": "^1.8.16",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "gaman": "^0.0.5"
   }
 }

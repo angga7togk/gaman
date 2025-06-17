@@ -1,14 +1,19 @@
-import type { Request } from "./request/request";
+import { CookieManager} from "../cookie";
+import type { GamanRequest } from "./request";
+import { Response } from "./response";
 
 export type RequestHandler = (
-  ctx: Context,
-  next: () => void
-) => any; // true = stop, false = next()
+  ctx: Context
+) => Response | undefined | any | Promise<Response | undefined | any>;
 
 export interface Context {
-  request: Request;
+  request: GamanRequest;
+  json: <T>() => Promise<T>;
+  formData: <T>() => Promise<T>;
+  body: any;
   params: any;
   query: any;
+  cookies: CookieManager
 }
 
 export interface Router {

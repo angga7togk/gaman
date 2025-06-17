@@ -115,7 +115,7 @@ export class AppRouter {
       path: string,
       router?: Router,
       handlers?: RequestHandler[]
-    ) => any
+    ) => unknown
   ): void {
     const isMethod = this.isHttpMethod;
     function each(_routes: Routes, _basePath: string) {

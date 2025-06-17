@@ -1,50 +1,59 @@
 import http from "http";
-import https from "https";
-import http2 from "http2";
-import fs from "fs";
-
-const NODE_ENV = process.env.NODE_ENV || "development";
-
-interface ServerOptions {
-  http?: boolean;
-  https?: {
-    key: string;
-    cert: string;
-  };
-  http2?: boolean;
-}
+import { AppRouter } from "../router/AppRouter";
+import nodeHandler from "../handler/http/nodeHandler";
+import { getNetworkAddress } from "../utils/networkUtils";
+import bunHandler from "../handler/http/bunHandler";
+import { Logger } from "../utils/Logger";
+import { Block } from "../block/block";
+import { Color } from "../utils/Color";
 
 export function createServer(
-  handler: http.RequestListener,
-  options: ServerOptions = { http: true }
+  appRouter: AppRouter,
+  blocks: Block[],
+  port: number,
+  host: string
 ) {
-  if (options.http2) {
-    return http2.createServer({
-      
-    }, (req, res) => {
-      if (req instanceof http2.Http2ServerRequest && res instanceof http2.Http2ServerResponse) {
-        handler(req as any, res as any); // Cast to `http` types for compatibility
-      }
+  if (typeof Bun !== "undefined") {
+    const srv = Bun.serve({
+      port,
+      hostname: host,
+      fetch: async (request, server) => {
+        const res = await bunHandler(appRouter, blocks, request, server);
+        return res
+          ? new Response(res.getBody(), {
+              status: res.getStatus(),
+              statusText: res.getStatusText(),
+              headers: res.getHeaders(),
+            })
+          : new Response("404 Not Found", { status: 404 });
+      },
+    });
+    printServerMessage(srv.hostname || "localhost", srv.port || port)
+  } else {
+    const srv = http.createServer(async (req, res) => {
+      const _res = await nodeHandler(appRouter, blocks, req);
+
+      res.writeHead(
+        _res?.getStatus() || 404,
+        _res?.getStatusText() || "",
+        _res?.getHeaders() || {}
+      );
+      return res.end(_res?.getBody() || "404 Not Found");
+    });
+
+    srv.listen(port, host, () => {
+      const _a = srv.address() as any;
+      printServerMessage(_a.address, _a.port || port)
     });
   }
+}
 
-  if (options.https) {
-    const { key, cert } = options.https;
-    if (!key || !cert) {
-      throw new Error("HTTPS requires both `key` and `cert` to be specified.");
-    }
-    return https.createServer(
-      {
-        key: fs.readFileSync(key, "utf8"),
-        cert: fs.readFileSync(cert, "utf8"),
-      },
-      handler
+function printServerMessage(host: string, port: number) {
+  const address = getNetworkAddress(host, port);
+  Logger.log(`Server local is running on ${Color.underline}${Color.fg.blue}http://localhost:${address?.port || port}${Color.reset}`);
+  if (address) {
+    Logger.log(
+      `Server network is running on ${Color.underline}${Color.fg.blue}http://${address.host}:${address.port || port}${Color.reset}`
     );
   }
-
-  if (options.http) {
-    return http.createServer(handler);
-  }
-
-  throw new Error("No server type specified in options.");
 }

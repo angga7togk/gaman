@@ -4,7 +4,7 @@ export default defineBlock({
   path: "/",
   all: (ctx) => {
     Logger.log("middleware ALL");
-  },
+  },  
   routes: {
     "/": (ctx) => {
       return Response.json({ message: "❤️ Welcome to GamanJS" });

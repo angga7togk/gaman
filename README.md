@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/PowerEssentials">
+  <a href="https://github.com/7TogkID/gaman">
     <img src=".github/images/gaman.png" width="25%">
   </a>
 </p>

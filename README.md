@@ -144,6 +144,8 @@ export default defineBlock({
       "/json": {
         GET: (ctx) => {
           const userName = ctx.locals.userName;
+
+          // return like Response.json()
           return {
             user_name_from_local: userName,
           };
@@ -152,6 +154,8 @@ export default defineBlock({
       "/text": {
         GET: (ctx) => {
           const userName = ctx.locals.userName;
+
+          // return like Response.text()
           return userName;
         },
       },

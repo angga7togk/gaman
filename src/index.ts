@@ -16,6 +16,9 @@ export * from "./tree/tree";
 export * from "./cookie";
 export * from "./formdata";
 
+export * from "./plugin/plugin"
+
+
 // export * from "./middleware/middleware";
 
 import { serv } from "./app";

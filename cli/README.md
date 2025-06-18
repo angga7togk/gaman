@@ -1,1 +1,0 @@
-# gaman-template-ts

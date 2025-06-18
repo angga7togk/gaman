@@ -2,7 +2,7 @@ import { formatPath } from "../utils/utils";
 import type { RequestHandler, Router, Routes } from "./router";
 
 // Interface untuk merepresentasikan route yang telah terdaftar
-export interface RouteRegister {
+export interface RouteData {
   regexPath: RegExp; // Regex untuk mencocokkan path
   path: string; // Path asli route
   method: string; // HTTP method (GET, POST, dll.)
@@ -14,17 +14,17 @@ export class AppRouter {
   /**
    * Menyimpan semua rute yang terdaftar, termasuk middleware
    */
-  private routes: Array<RouteRegister> = [];
+  private routes: Array<RouteData> = [];
 
   /**
    * Menyimpan semua middleware sementara sebelum digabungkan ke rute
    */
-  private middlewares: Array<RouteRegister> = [];
+  private middlewares: Array<RouteData> = [];
 
   /**
    * Mengambil semua rute yang terdaftar
    */
-  getRoutes(): Array<RouteRegister> {
+  getRoutes(): Array<RouteData> {
     return this.routes;
   }
 
@@ -84,7 +84,7 @@ export class AppRouter {
       .replace(/\//g, "\\/");
 
     const regexPath = new RegExp(`^${regexString}$`);
-    const data: RouteRegister = {
+    const data: RouteData = {
       regexPath,
       path,
       method,

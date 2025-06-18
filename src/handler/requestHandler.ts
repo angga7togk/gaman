@@ -7,7 +7,7 @@ import { Logger } from "../utils/Logger";
 
 export async function requestHandler(
   appRouter: AppRouter,
-  blocks: Block[],
+  blocks: Block[],  
   ctx: Context
 ): Promise<Response | undefined> {
   let indexRoute = 0;
@@ -43,7 +43,6 @@ export async function requestHandler(
                 });
               }
             } else {
-              console.log(ctx.cookies.serializeAll());
               
               return new Response(res.getBody(), {
                 ...res.getOptions(),

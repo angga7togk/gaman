@@ -1,8 +1,13 @@
 import type { Block } from "./block/block";
+import { AppPlugin } from "./plugin/AppPlugin";
+import { GamanPlugin } from "./plugin/plugin";
 import { AppRouter } from "./router/AppRouter";
+import { RequestHandler } from "./router/router";
 import { createServer } from "./server/server";
+import { Logger } from "./utils/Logger";
 
-export interface AppOptions {
+export interface App {
+  plugins?: Array<new (app: App) => GamanPlugin>,
   server?: {
     host?: string;
     port?: number;
@@ -10,13 +15,14 @@ export interface AppOptions {
   blocks?: Block[];
 }
 
-const defaultOptions: AppOptions = {
+const defaultOptions: App = {
   server: { host: "localhost", port: 3431 },
 };
 
+export const appPlugin = new AppPlugin();
 export const appRouter = new AppRouter();
 
-export async function serv(options: AppOptions = defaultOptions) {
+export async function serv(options: App = defaultOptions) {
   const blocks: Block[] = options?.blocks || [];
   for (const block of blocks) {
     // Sort routes: wildcard routes should be processed last
@@ -24,7 +30,16 @@ export async function serv(options: AppOptions = defaultOptions) {
 
     // Register middleware
     if (block.all) {
-      appRouter.applyRoutes({ ["/*"]: block.all }, block.path);
+      appRouter.applyRoutes({ ["*"]: block.all }, block.path);
+    }
+  }
+  if(options.plugins){
+    for(const pluginClass of options.plugins){
+      const plugin = new pluginClass(options);
+      await plugin.onStart();
+      appRouter.applyRoutes({["*"]: plugin.onRequest as RequestHandler})
+      Logger.debug(`Plugin "${plugin.name}" has been successfully registered.`)
+      appPlugin.register(plugin);
     }
   }
   const host =
@@ -33,6 +48,3 @@ export async function serv(options: AppOptions = defaultOptions) {
   createServer(appRouter, blocks, port, host);
 }
 ``
-export default {
-  serv,
-};

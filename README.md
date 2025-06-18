@@ -71,14 +71,14 @@ This will scaffold a new GamanJS project with the necessary structure.
 Start your server with:
 
 ```bash
-# Using @gaman/cli
-gaman dev
+# Using @gaman/cli (default using: node)
+gaman dev 
 
 # Using Node
 npm run dev
 
 # Using Bun
-bun run dev
+bun run dev:bun
 ```
 
 ## 🛠 Updating the CLI

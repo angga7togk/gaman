@@ -1,182 +1,135 @@
-# GamanJS Framework Documentation
+<p align="right">
+  <img src=".github/images/indonesia.png" height="23px">
+</p>
 
-GamanJS is a minimalist JavaScript/TypeScript framework designed for modular and structured backend development. Inspired by the Japanese term "gamaninasai" (meaning "be patient"), GamanJS emphasizes clarity, modularity, and simplicity.
+<p align="center">
+  <a href="https://github.com/PowerEssentials">
+    <img src=".github/images/gaman.png" width="25%">
+  </a>
+</p>
+
+<h1 align="center">GamanJS</h1>
+<p align="center">
+  <strong>GamanJS is a modern backend framework built for resilience, scalability, and simplicity.</strong>
+</p>
 
 ---
 
-## Getting Started
+## 🧠 Philosophy
+"Gaman" (我慢) — patience, perseverance, and resilience. These principles are at the heart of GamanJS, empowering developers to build robust and modular web applications effortlessly.
 
-### Installation
+## ✨ Features
+- **Tree Routing & Modular Architecture:** GamanJS introduces the concept of Blocks for routing and modularity. Blocks are self-contained modules that handle specific paths, making your application scalable and maintainable.
+- **Simple Middleware:** Easily attach middleware for routes or specific paths.
+- **Extensible Design:** Add your logic to enhance or modify the framework with minimal effort.
+- **Lightweight & Performant:** Built with efficiency in mind, GamanJS is designed to handle real-world applications with ease.
 
-To install GamanJS, use your preferred package manager:
-
+## 🚀 Get Started
+### Install the CLI
+You can install the GamanJS CLI globally using your preferred package manager:
 ```bash
-npm install gaman
+# Using npm
+npm i @gaman/cli -g
+
+# Using Bun
+bun install -g @gaman/cli
+
+# Using pnpm
+pnpm add -g @gaman/cli
+
+#or others...
 ```
 
-### Main Entry Point (`main.ts`)
+### Create a New Project
+To create a new GamanJS project, use the `gaman new` command:
+```bash
+gaman new
+```
+This will scaffold a new GamanJS project with the necessary structure.
 
-Below is an example of how to set up the main entry point for a GamanJS application:
+### Run Your Project
+Start your server with:
+```bash
+# Using @gaman/cli
+gaman dev
 
-```typescript
-import app from "gaman";
-import mainBlock from "./main.block";
+# Using Node
+npm run dev
 
-app.serv({
-  blocks: [mainBlock],
+# Using Bun
+bun run dev
+```
+
+## 🛠 Updating the CLI
+To update your GamanJS CLI to the latest version:
+```bash
+gaman upgrade
+```
+
+## 📂 Project Structure
+After creating a new project, your file structure will look like this:
+```css
+src/
+├── main.ts
+├── main.block.ts
+```
+
+## ✏️ Example Code
+Here’s a quick example to get you started: <br>
+`src/main.ts`
+```ts
+import mainBlock from "main.block";
+import gaman from "gaman";
+
+gaman.serv({
+  blocks: [mainBlock], // your blocks
   server: {
-    host: "0.0.0.0", // Optional
-    port: 3431       // Optional
-  }
+    port: 3431, // optional
+    host: '0.0.0.0', // optional
+  },
 });
 ```
 
-### Explanation
-
-* **`blocks`**: Defines the modular units of your application, enabling a structured and organized approach.
-* **`server`**: Allows configuration of the server's host and port.
-
----
-
-## Modular Blocks (`main.block.ts`)
-
-Blocks are the primary way to define routes and middleware in GamanJS. Below is an example block:
-
-```typescript
-import apiTree from "./tree/api.tree";
-import { Logger, defineBlock, Response } from "gaman";
+`src/main.block.ts`
+```ts
+import { defineBlock, Response } from "gaman";
 
 export default defineBlock({
-  path: "/", // Base path
-  all: async (ctx, next) => {
-    Logger.log("anu1");
-    return next();
+  path: "/",
+  all: (ctx) => {
+    console.log("middleware ALL");
   },
   routes: {
-    "*": {
-      GET: async (ctx, next) => {
-        Logger.log("anu2");
-        return next();
-      },
+    "/": (ctx) => {
+      return Response.json({ message: "❤️ Welcome to GamanJS" });
     },
-    "/1": {
-      POST: (ctx) => {
-        new Response("Hahah", { status: 200 }).send();
-      },
-      "/2": {
+    "/article/*": (ctx) => {
+      ctx.locals.userName = "Angga7Togk"; // set data locals
+    },
+    "/article": {
+      POST: [
+        async (ctx) => {
+          const json = await ctx.json();
+          return Response.json(json /**return JSON */, { status: 200 });
+        },
+      ],
+      "/json": {
         GET: (ctx) => {
-          return Response.json({ no: 2 });
-        },
-        "/3": {
-          GET: (ctx) => {
-            return Response.json({ no: 3 });
-          },
+          const userName = ctx.locals.userName;
+          return {
+            user_name_from_local: userName,
+          };
         },
       },
-    },
-    "/about/*": {
-      POST: (ctx, next) => {
-        Logger.log("about post middleware");
-        next();
+      "/text": {
+        GET: (ctx) => {
+          const userName = ctx.locals.userName;
+          return userName;
+        },
       },
     },
-    "/about": (ctx, next) => {
-      Logger.log("haha");
-      next();
-    },
-    "/jir/about": {
-      GET: () => {
-        return Response.text("Berhasil si");
-      },
-    },
-    "/api": apiTree,
   },
 });
-```
+``` 
 
-### Explanation
-
-* **`path`**: The base path for all routes defined in the block.
-* **`all`**: A global middleware that runs for all routes within this block.
-* **`routes`**: Defines the routes and their corresponding HTTP methods (e.g., `GET`, `POST`).
-* **Nested Routes**: Supports nested paths for deeper route structures.
-
----
-
-## Tree Routing (`tree/api.tree.ts`)
-
-GamanJS uses a "Tree Routing" concept for route organization. Here's an example:
-
-```typescript
-import { Response, defineTree } from "gaman";
-
-export default defineTree({
-  "/tes": {
-    GET: () => Response.json({ Aduhai: "sda" }, {
-      status: 200
-    }),
-  },
-});
-```
-
-### Explanation
-
-* **Tree Structure**: Routes are defined in a nested tree-like structure for simplicity and clarity.
-* **Response**: Use built-in response utilities like `Response.json`, `Response.text`, or `Response` for flexible responses.
-
----
-
-## Utilities
-
-### Logger
-
-The `Logger` utility is used for logging events, errors, and debugging information.
-
-```typescript
-Logger.log("This is a log message");
-Logger.info("This is an info message");
-Logger.debug("This is a debug message");
-Logger.error("This is an error message");
-```
-
-### Response
-
-The `Response` class provides utilities for sending HTTP responses.
-
-#### Examples:
-
-* **Send Plain Text:**
-
-  ```typescript
-  Response.text("Hello World").send();
-  ```
-
-* **Send JSON:**
-
-  ```typescript
-  Response.json({ success: true }, { status: 200 }).send();
-  ```
-
-* **Send Custom Response:**
-
-  ```typescript
-  new Response("Custom Message", { status: 201 }).send();
-  ```
-
----
-
-## Running the Application
-
-To start your GamanJS application, use the following command:
-
-```bash
-buat cli sendiri blom gw buatin bisa bun main.ts atau tsx main.ts :V
-```
-
-Ensure you have built your project using a bundler like `esbuild` or `tsc` before running.
-
----
-
-## Philosophy
-
-GamanJS aims to provide a lightweight, modular, and intuitive framework for building Node.js backend applications. Its "Tree Routing" concept allows developers to structure their routes in a nested and readable manner, making the codebase maintainable and scalable.
+Happy coding! ❤️ GamanJS Team

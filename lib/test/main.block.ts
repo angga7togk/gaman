@@ -7,21 +7,26 @@ export default defineBlock({
   },
   routes: {
     "*": (ctx) => {
-      Logger.debug("Debug coy hahahaha")
+      Logger.debug("Debug coy hahahaha");
       Logger.log("asdada");
+
+      ctx.locals.user = "aku adalah atmin";
       // ctx.cookies.set('saadsadadadsaadadadd', 'aku-gsad', {expires: '10s'})
     },
-    "/": async (ctx) => {
-      return Response.json({ message: "Article ID" });
+    "/": {
+      POST: async (ctx) => {
+        const data = await ctx.formData()
+        console.log(data.get('fafafa')?.value);
+        
+        return Response.json(data.get('fafafa'));
+      },
     },
     "/article/:id": {
       GET: () => {
-
-          asda
         return Response.json({ message: "Article ID" });
       },
       POST: [
-        (ctx) => { 
+        (ctx) => {
           return Response.json(ctx.request.json /**return JSON */, {
             status: 200,
           });

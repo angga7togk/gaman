@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/busboy": "^1.5.4",
     "@types/formidable": "^3.4.5",
     "esbuild": "^0.25.5",
     "rimraf": "^6.0.1",
@@ -42,6 +43,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@mjackson/multipart-parser": "^0.10.1",
+    "busboy": "^1.6.0",
     "cookie": "^1.0.2",
     "formidable": "^3.5.4"
   }

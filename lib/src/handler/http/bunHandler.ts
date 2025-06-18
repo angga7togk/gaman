@@ -4,7 +4,8 @@ import { AppRouter } from "../../router/AppRouter";
 import { requestHandler } from "../requestHandler";
 import { Response } from "../../router/response";
 import { Block } from "../../block/block";
-import { CookieManager, Cookies } from "../../cookie";
+import { CookieManager } from "../../cookie";
+import { GamanFormData } from "../../formdata";
 
 export default async function bunHandler(
   appRouter: AppRouter,
@@ -12,13 +13,12 @@ export default async function bunHandler(
   req: Request,
   server: Server
 ): Promise<Response | undefined> {
-
   const _url = new URL(req.url);
   // parsing parameter contoh: /user/:userId
   const params: Record<string, string> = {};
   for (const route of appRouter.getRoutes()) {
     const match = route.regexPath.exec(_url.pathname);
-    
+
     if (match && (route.method === req.method || route.method === "ALL")) {
       // Extract params from the URL
       route.paramKeys.forEach((key, index) => {
@@ -26,8 +26,7 @@ export default async function bunHandler(
       });
     }
   }
-  console.log("BUN",new CookieManager(req.headers.get("cookie") || "").getAll());
-  
+
   // Gaman Response
   const gamanRequest: GamanRequest = {
     method: req.method || "GET",
@@ -37,17 +36,33 @@ export default async function bunHandler(
     query: Object.fromEntries(_url.searchParams.entries()),
     params,
     body: req.body || null,
-    arrayBuffer: async () => {
-      return await req.arrayBuffer();
-    },
-    bytes: async() => {
-      return await req.bytes();
-    },
     json: async <T>() => {
       return (await req.json()) as T;
     },
-    formData: async <T>() => {
-      return (await req.formData()) as T;
+    formData: async () => {
+      const gamanFormData = new GamanFormData();
+      const bunFormData = await req.formData();
+      bunFormData.forEach(async (value, key, parent) => {
+        if (value instanceof File) {
+          const arrayBuffer = await value.arrayBuffer();
+          gamanFormData.set(key, {
+            isFile: true,
+            name: key,
+            mimetype: value.type,
+            filename: value.name,
+            value: new Blob([arrayBuffer], {
+              type: value.type,
+            }),
+          });
+        } else {
+          gamanFormData.set(key, {
+            isFile: false,
+            name: key,
+            value,
+          });
+        }
+      });
+      return gamanFormData;
     },
     cookies: new CookieManager(req.headers.get("cookie") || ""), // Parsing dari `req.headers.cookie`
     ip: server.requestIP(req)?.address || "",
@@ -59,8 +74,9 @@ export default async function bunHandler(
     params: gamanRequest.params,
     query: gamanRequest.query,
     body: gamanRequest.body,
+    locals: {},
     formData: gamanRequest.formData,
     json: gamanRequest.json,
-    cookies: gamanRequest.cookies
+    cookies: gamanRequest.cookies,
   });
 }

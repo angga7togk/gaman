@@ -1,4 +1,5 @@
-import { CookieManager} from "../cookie";
+import { CookieManager } from "../cookie";
+import { GamanFormData } from "../formdata";
 import type { GamanRequest } from "./request";
 import { Response } from "./response";
 
@@ -9,11 +10,12 @@ export type RequestHandler = (
 export interface Context {
   request: GamanRequest;
   json: <T>() => Promise<T>;
-  formData: <T>() => Promise<T>;
+  formData: () => Promise<GamanFormData>;
+  locals: any;
   body: any;
   params: any;
   query: any;
-  cookies: CookieManager
+  cookies: CookieManager;
 }
 
 export interface Router {

@@ -1,4 +1,5 @@
 import { CookieManager } from "../cookie";
+import { GamanFormData } from "../formdata";
 
 export interface GamanRequest {
   method: string;
@@ -8,10 +9,8 @@ export interface GamanRequest {
   params: any;
   query: any;
   body: any;
-  arrayBuffer: () => Promise<ArrayBuffer>
-  bytes: () => Promise<Uint8Array<ArrayBuffer>>
   json: <T = any>() => Promise<T>;
-  formData: <T = any>() => Promise<T>;
+  formData: () => Promise<GamanFormData>;
   ip: string;
   cookies: CookieManager;
   raw: any;

@@ -1,9 +1,9 @@
-import { defineBlock, Response } from "gaman";
+import { defineBlock, Logger, Response } from "gaman";
 
 export default defineBlock({
   path: "/",
   all: (ctx) => {
-    console.log("middleware ALL");
+    Logger.log("middleware ALL");
   },
   routes: {
     "/": (ctx) => {

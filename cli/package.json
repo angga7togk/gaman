@@ -1,6 +1,6 @@
 {
   "name": "@gaman/cli",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "angga7togk",
   "repository": {
-    "url": "https://github.com/7TogkID/mydjs"
+    "url": "https://github.com/7TogkID/gaman"
   },
   "publishConfig": {
     "access": "public"

@@ -54,5 +54,13 @@ yargs(hideBin(process.argv))
       });
     }
   )
+  .command(
+    "upgrade",
+    "Upgrade version @gaman/cli",
+    () => {},
+    async() => {
+      await import("./commands/upgrade.js")
+    }
+  )
   .demandCommand(1, "You need at least one command before moving on")
   .help().argv;

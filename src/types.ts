@@ -74,7 +74,7 @@ export interface Request {
   raw: any;
 }
 
-export interface Context<A extends AppConfig> {
+export interface Context<A extends AppConfig = AppConfig> {
   locals: A["Locals"];
   env: A["Env"];
   pathname: string;

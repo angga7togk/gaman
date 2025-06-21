@@ -43,7 +43,10 @@ export class GamanBase<A extends AppConfig> {
     return block;
   }
 
-  private async requestHandle(req: http.IncomingMessage, res: http.ServerResponse) {
+  private async requestHandle(
+    req: http.IncomingMessage,
+    res: http.ServerResponse
+  ) {
     Log.setRoute(req.url || "/");
     const startTime = performance.now();
     const ctx = await createContext<A>(req);
@@ -63,8 +66,19 @@ export class GamanBase<A extends AppConfig> {
             continue;
           }
 
-          if(block.includes){
-            
+          if (block.includes) {
+            for (const middleware of block.includes) {
+              const result = await middleware(ctx);
+              
+              /**
+               * ? Kenapa harus di kurung di if(result){...} ???
+               * * Karena di bawahnya masih ada yang harus di proses seperti routes...
+               * * Kalau tidak di kurung maka, dia bakal jalanin middleware doang routesnya ga ke proses
+               */
+              if (result) {
+                await this.handleResponse(result, ctx, res);
+              }
+            }
           }
 
           // Global middleware handler

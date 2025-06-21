@@ -1,12 +1,33 @@
-import app from "../src/index";
-import mainBlock from "./main.block";
-import TesPlugin from "./TesPlugin";
+import defineBlock from "../src/block/defineBlock";
+import { serv } from "../src/gaman";
+import { Response } from "../src/response";
 
-app.serv({
-  plugins: [TesPlugin],
-  blocks: [mainBlock],
-  server: {
-    host: "0.0.0.0", // opsional
-    port: 3431 // opsional
-  }
+const blocks = defineBlock({
+  path: "/user",
+  all: (ctx) => {
+    
+  },
+  websocket: async (ctx) => {
+    return {
+      onOpen: () => {
+        console.log("asdadadadada")
+      },
+      onMessage: (data) => {
+        ctx.send(data.toString())
+      },
+      onClose: () => {
+        console.log('asdada')
+      }
+    }
+  },
+});
+
+serv({
+  blocks: [blocks],
+  error: (error, ctx) => {
+    return Response.json(
+      { message: "Internal Server Error!" },
+      { status: 500 }
+    );
+  },
 });

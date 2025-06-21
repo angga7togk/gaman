@@ -6,7 +6,7 @@ export interface FormDataEntryValue {
   value: string | Blob;
 }
 
-export class FormData {
+export class GamanFormData {
   private fields: Map<string, FormDataEntryValue[]>;
 
   constructor(defaultData: Map<string, FormDataEntryValue[]> = new Map()) {
@@ -19,7 +19,7 @@ export class FormData {
 
   get(name: string): FormDataEntryValue | null {
     const values = this.fields.get(name);
-    return values ? values[0] || null : null;
+    return values ? values[0] : null;
   }
 
   getAll(name: string): FormDataEntryValue[] {

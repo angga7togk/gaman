@@ -6,7 +6,6 @@ export interface CookieOptions extends Omit<SerializeOptions, "expires"> {
 
 export class CookieManager {
   private cookies: Record<string, string | undefined> = {};
-  private cookiesSetted: Record<string, string> = {}; // Hanya menyimpan cookie yang di-set
 
   constructor(cookieString: string = "") {
     this.cookies = cookie.parse(cookieString); // Parse cookies dari string
@@ -29,16 +28,15 @@ export class CookieManager {
           : options.expires;
     }
 
+    this.cookies[name] = value;
+
     const serialized = cookie.serialize(name, value, {
       ...options,
       expires,
     });
 
-    // Menyimpan cookie yang di-set ke cookiesSetted
-    this.cookiesSetted[name] = serialized;
-
-    // Menyimpan nilai plain cookie ke cookies biasa
-    this.cookies[name] = value;
+    // Menyimpan cookie yang diserialisasi sebagai string (untuk penggunaan `serializeAll`)
+    this.cookies[`${name}_serialized`] = serialized;
   }
 
   /**
@@ -61,19 +59,24 @@ export class CookieManager {
 
   /**
    * Get all cookies as an object
-   * Combines cookies parsed and cookies set explicitly.
    * @returns All cookies
    */
-  getAll(): Record<string, string | undefined> {
-    return { ...this.cookies };
+  getAll(): Record<string, string> {
+    const result: Record<string, string> = {};
+    for (const [key, value] of Object.entries(this.cookies)) {
+      if (!key.endsWith("_serialized")) {
+        result[key] = value || "";
+      }
+    }
+    return result;
   }
 
   /**
    * Serialize all cookies into a string
-   * @returns Serialized cookies string (only from `cookiesSetted`)
+   * @returns Serialized cookies string
    */
   serializeAll(): string {
-    return Object.entries(this.cookiesSetted)
+    return Object.entries(this.cookies)
       .filter(([key]) => key.endsWith("_serialized"))
       .map(([, value]) => value)
       .join("; ");
@@ -86,30 +89,30 @@ export class CookieManager {
    */
   remove(name: string, options: CookieOptions = {}): void {
     this.set(name, "", { ...options, expires: new Date(0) });
-    delete this.cookiesSetted[name]; // Hapus dari cookiesSetted
-    delete this.cookies[name]; // Hapus dari cookies biasa
   }
 
   private parseExpires(expires: string | number): Date {
     if (typeof expires === "number") {
+      // Jika berupa angka, anggap sebagai milidetik dari sekarang
       return new Date(Date.now() + expires);
     }
 
     if (typeof expires === "string") {
+      // Parsing string seperti "1h", "2d", dll.
       const match = expires.match(/^(\d+)([smhdw])$/i);
       if (!match) {
         throw new Error("Invalid expires format. Use '1h', '2d', or a number.");
       }
 
-      const value = parseInt(match[1]!, 10);
-      const unit = match[2]!.toLowerCase();
+      const value = parseInt(match[1], 10);
+      const unit = match[2].toLowerCase();
 
       const multiplier: Record<string, number> = {
-        s: 1000,
-        m: 1000 * 60,
-        h: 1000 * 60 * 60,
-        d: 1000 * 60 * 60 * 24,
-        w: 1000 * 60 * 60 * 24 * 7,
+        s: 1000, // seconds
+        m: 1000 * 60, // minutes
+        h: 1000 * 60 * 60, // hours
+        d: 1000 * 60 * 60 * 24, // days
+        w: 1000 * 60 * 60 * 24 * 7, // weeks
       };
 
       return new Date(Date.now() + value * (multiplier[unit] || 0));
@@ -120,3 +123,5 @@ export class CookieManager {
     );
   }
 }
+
+export const Cookies = new CookieManager();

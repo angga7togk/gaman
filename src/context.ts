@@ -1,9 +1,11 @@
 import http from "node:http";
 import querystring from "node:querystring";
 import type { Context, AppConfig, BlockConfig } from "./types";
-import { FormData, type FormDataEntryValue } from "./formdata";
+import { FormData, type FormDataEntryValue } from "./utils/form-data";
 import Busboy from "busboy"; // Import Busboy
-import { CookieManager } from "./cookie";
+import { Cookie } from "./utils/cookie";
+import { Headers } from "./utils/headers";
+import { Response } from "./response";
 
 export async function createContext<A extends AppConfig>(
   req: http.IncomingMessage
@@ -24,11 +26,14 @@ export async function createContext<A extends AppConfig>(
     parsedBody = parseRequestBody(bodyBuffer, contentType, method);
   }
 
+  const headers = new Headers(req.headers);
+
   const gamanRequest = {
     method,
     url: urlString,
     pathname: url.pathname,
-    headers: req.headers as Record<string, string>,
+    headers: headers,
+    header: (key: string) => headers.get(key),
     query: Object.fromEntries(url.searchParams.entries()),
     params: {}, // akan di set dari router
     // body akan menjadi raw buffer untuk non-multipart, atau null/undefined untuk multipart
@@ -64,8 +69,11 @@ export async function createContext<A extends AppConfig>(
     json: gamanRequest.json,
     params: gamanRequest.params,
     query: gamanRequest.query,
+    header: gamanRequest.header,
+    headers: gamanRequest.headers,
+    cookies: new Cookie(req.headers.cookie || ""),
+    response: new Response<A>(),
     url,
-    cookies: new CookieManager(req.headers.cookie || ""),
   };
 }
 

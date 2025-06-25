@@ -1,4 +1,3 @@
-import type Stream from "stream";
 import type { GamanBase } from "./gaman-base";
 import type {
   AppConfig,

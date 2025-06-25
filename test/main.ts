@@ -1,45 +1,48 @@
-import defineBlock from "../src/block/defineBlock";
-import { serv } from "../src/gaman";
-import { Response } from "../src/response";
-import { basicAuth } from "../src/middleware/basic-auth";
-
+import gaman, { defineBlock, Response } from "../src";
 const blocks = defineBlock({
-  path: "/",
-  all: (ctx) => {},
-  includes: [
-    basicAuth({
-      username: "my",
-      password: "abogoboga",
-    }),
-  ],
   routes: {
-    "/": () => {
-      return Response.json({
-        message: "OK!",
-      });
+    "/": (ctx) => {
+      return Response.json({ message: "❤️ Welcome to GamanJS" });
+    },
+    // Middleware with path
+    "/article/*": (ctx) => {
+      ctx.locals.userName = "Angga7Togk"; // set data locals
+    },
+    "/article": {
+      POST: [
+        async (ctx) => {
+          const json = await ctx.json();
+          return Response.json(json /**return JSON */, { status: 200 });
+        },
+      ],
+      "/json": {
+        GET: (ctx) => {
+          const userName = ctx.locals!.userName;
+
+          // return like Response.json()
+          return {
+            user_name_from_local: userName,
+          };
+        },
+      },
+
+      "/text": {
+        GET: (ctx) => {
+          const userName = ctx.locals.userName;
+
+          // return like Response.text()
+          return userName;
+        },
+      },
     },
   },
-  websocket: async (ctx) => {
-    return {
-      onOpen: () => {
-        console.log("asdadadadada");
-      },
-      onMessage: (data) => {
-        ctx.send(data.toString());
-      },
-      onClose: () => {
-        console.log("asdada");
-      },
-    };
-  },
 });
-
-serv({
+gaman.serv({
+  server: {
+    port: 3441
+  },
   blocks: [blocks],
-  error: (error, ctx) => {
-    return Response.json(
-      { message: "Internal Server Error!" },
-      { status: 500 }
-    );
+  error(error, ctx) {
+    console.log(error)
   },
 });

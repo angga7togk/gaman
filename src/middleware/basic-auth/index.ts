@@ -82,9 +82,8 @@ export const basicAuth = (options: BasicAuthOptions) => {
    * @returns An array with [username, password], or undefined if no credentials are found.
    */
   function getCredentials(
-    headers: Record<string, string>
+    authHeader: string | undefined
   ): string[] | undefined {
-    const authHeader = headers["authorization"];
     if (!authHeader) return undefined;
     const base64Credentials = authHeader?.split(" ")[1];
     if (!base64Credentials) return undefined;
@@ -96,7 +95,7 @@ export const basicAuth = (options: BasicAuthOptions) => {
   }
 
   return defineMiddleware(async (ctx) => {
-    const cred = getCredentials(ctx.request.headers);
+    const cred = getCredentials(ctx.request.headers.get('Authorization'));
 
     // Validate credentials
     if (cred) {

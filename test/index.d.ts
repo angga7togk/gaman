@@ -1,9 +1,7 @@
-import type { GamanBase } from "../src/gaman-base";
-
 declare global {
   namespace Gaman {
     interface Locals {
-      anu: string;
+      userName: string;
     }
 
     interface Env {}

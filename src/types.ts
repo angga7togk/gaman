@@ -1,8 +1,9 @@
-import type { Server, WebSocket, WebSocketServer } from "ws";
-import type { CookieManager } from "./cookie";
+import type { WebSocket, WebSocketServer } from "ws";
+import type { Cookie } from "./utils/cookie";
 import type HttpError from "./error/HttpError";
 import type { Response } from "./response";
-import http, { ClientRequest } from "http";
+import { ClientRequest } from "http";
+import { Headers } from "./utils/headers";
 
 /* -------------------------------------------------------------------------- */
 /*                              Interface Global                              */
@@ -21,15 +22,20 @@ export {};
 
 export type AppOptions<A extends AppConfig> = {
   includes?: Array<Handler<A>>;
-  host?: string;
-  port?: number;
   blocks?: Array<BlockInterface<A>>;
   error?: (error: Error, ctx: Context<A>) => NextResponse<A>;
+  server?: {
+    host?: string;
+    port?: number;
+  };
 };
 
+export type LocalsEmpty = object;
+export type EnvEmpty = object;
+
 export type AppConfig = {
-  Locals?: Gaman.Locals;
-  Env?: Gaman.Env;
+  Locals: Gaman.Locals;
+  Env: Gaman.Env;
 };
 
 export type Priority = "very-high" | "high" | "normal" | "low" | "very-low";
@@ -47,6 +53,7 @@ export interface WebSocketContext extends WebSocket {
 export type WebSocketServerHandler = (
   ctx: WebSocketContext
 ) => Promise<WebSocketHandler> | WebSocketHandler;
+
 export type WebSocketHandler = {
   onOpen?: () => void; // Dipanggil saat koneksi terbuka
   onClose?: (code?: number, reason?: string) => void; // Dipanggil saat koneksi ditutup
@@ -64,7 +71,8 @@ export interface Request {
   method: string;
   url: string;
   pathname: string;
-  headers: Record<string, string>;
+  headers: Headers;
+  header: (key: string) => any;
   params: any;
   query: any;
   body: any;
@@ -81,12 +89,15 @@ export interface Context<A extends AppConfig = AppConfig> {
   url: URL;
   params: any;
   query: any;
-  cookies: CookieManager;
+  cookies: Cookie;
   json: <T = any>() => Promise<T>;
+  headers: Headers;
+  header: (key: string) => any;
   request: Request;
+  response: Response<A>;
 }
 
-export type NextResponse<A extends AppConfig = any> =
+export type NextResponse<A extends AppConfig> =
   | Promise<Response<A> | undefined>
   | Response<A>
   | undefined
@@ -121,9 +132,13 @@ export interface BlockConfig {
  */
 export interface BlockInterface<A extends AppConfig> {
   /**
-   * Array of included resources or dependencies for the block.
-   * This can be used to define specific components or modules
-   * that should be available in the block's context.
+   * must use slash '/' at the end of the path
+   * @example '/user/detail/'
+   */
+  strict?: boolean;
+
+  /**
+   * Array of included middlewares
    */
   includes?: Array<Handler<A>>;
 

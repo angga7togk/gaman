@@ -1,14 +1,16 @@
 import cookie, { type SerializeOptions } from "cookie";
+import crypto from "crypto";
+import { base64UrlEncode } from "./utils";
 
 export interface CookieOptions extends Omit<SerializeOptions, "expires"> {
   expires?: Date | string | number; // Override properti `expires`
 }
 
-export class CookieManager {
+export class Cookie {
   private cookies: Record<string, string | undefined> = {};
   private cookiesSetted: Record<string, string> = {}; // Hanya menyimpan cookie yang di-set
 
-  constructor(cookieString: string = "") {
+  constructor(cookieString: string = "", private secret: string = "") {
     this.cookies = cookie.parse(cookieString); // Parse cookies dari string
   }
 
@@ -34,7 +36,7 @@ export class CookieManager {
       expires,
     });
 
-    // Menyimpan cookie yang di-set ke cookiesSetted
+    // Menyimpan cookie yang di-set ke cookixsSetted
     this.cookiesSetted[name] = serialized;
 
     // Menyimpan nilai plain cookie ke cookies biasa
@@ -118,5 +120,40 @@ export class CookieManager {
     throw new Error(
       "Invalid expires format. Use a number or a string like '1h'."
     );
+  }
+
+  /**
+   * Create a JWT token
+   * @param payload - Data to include in the token
+   * @param secret - Secret key for signing the token
+   * @param alg - Algorithm (default: HS256)
+   */
+  private createSignature(payload: object): string {
+    // Encode Payload
+    const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+
+    const signature = crypto
+      .createHmac("sha256", this.secret) // Use HMAC-SHA256 (HS256)
+      .update(encodedPayload)
+      .digest("base64");
+
+    const encodedSignature = base64UrlEncode(signature);
+
+    // Combine all parts
+    return `${encodedPayload}.${encodedSignature}`;
+  }
+
+  /**
+   * Verify a JWT token
+   * @param token - JWT token
+   * @param secret - Secret key for verification
+   */
+  private verifySignature(token: string): boolean {
+    const [payload, signature] = token.split(".");
+    const expectedSignature = crypto
+      .createHmac("sha256", this.secret)
+      .update(payload)
+      .digest("base64");
+    return base64UrlEncode(expectedSignature) === signature;
   }
 }

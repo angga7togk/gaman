@@ -32,7 +32,10 @@ export class GamanBase<A extends AppConfig> {
     if (block.websocket) {
       this.websocket.registerWebSocketServer(block);
     }
-    this.blocks.push(block);
+    this.blocks.push({
+      ...block,
+      path: block.path || "/"
+    });
   }
 
   getBlock(blockPath: string): BlockInterface<A> | undefined {
@@ -69,14 +72,16 @@ export class GamanBase<A extends AppConfig> {
           if (block.includes) {
             for (const middleware of block.includes) {
               const result = await middleware(ctx);
-              
+
               /**
                * ? Kenapa harus di kurung di if(result){...} ???
                * * Karena di bawahnya masih ada yang harus di proses seperti routes...
                * * Kalau tidak di kurung maka, dia bakal jalanin middleware doang routesnya ga ke proses
                */
               if (result) {
-                await this.handleResponse(result, ctx, res);
+                // * Set Status Log
+                Log.setStatus(result.getStatus());
+                return await this.handleResponse(result, ctx, res);
               }
             }
           }
@@ -91,7 +96,9 @@ export class GamanBase<A extends AppConfig> {
              * * Kalau tidak di kurung maka, dia bakal jalanin middleware doang routesnya ga ke proses
              */
             if (result) {
-              await this.handleResponse(result, ctx, res);
+              // * Set Status Log
+              Log.setStatus(result.getStatus());
+              return await this.handleResponse(result, ctx, res);
             }
           }
 
@@ -107,7 +114,9 @@ export class GamanBase<A extends AppConfig> {
            * * Karna disini adalah respon akhir dari handle routes!
            */
           if (result) {
-            await this.handleResponse(result, ctx, res);
+            // * Set Status Log
+            Log.setStatus(result.getStatus());
+            return await this.handleResponse(result, ctx, res);
           }
         } catch (error: any) {
           if (block.error) {
@@ -116,7 +125,11 @@ export class GamanBase<A extends AppConfig> {
               new HttpError(403, error.message),
               ctx
             );
-            if (result) return result;
+            if (result) {
+              // * Set Status Log
+              Log.setStatus(result.getStatus());
+              return result;
+            }
           }
           Log.error(error);
           throw new HttpError(403, error.message);
@@ -124,13 +137,20 @@ export class GamanBase<A extends AppConfig> {
       }
 
       // not found
+
+      // * Set Status Log
+      Log.setStatus(404);
       return await this.handleResponse(undefined, ctx, res);
     } catch (error: any) {
       // ! Handler Error keseluruhan system
 
       if (this.options.error) {
-        const result = await this.options.error(new Error(error.message), ctx);
-        if (result) return await this.handleResponse(result, ctx, res);
+        const result = await this.options.error(error, ctx);
+        if (result) {
+          // * Set Status Log
+          Log.setStatus(result.getStatus());
+          return await this.handleResponse(result, ctx, res);
+        }
       }
       Log.error(error.message);
       res.statusCode = 500;
@@ -143,6 +163,7 @@ export class GamanBase<A extends AppConfig> {
         )}ms)${Color.reset}`
       );
       Log.setRoute("");
+      Log.setStatus(null);
     }
   }
 
@@ -241,9 +262,18 @@ export class GamanBase<A extends AppConfig> {
     ctx: Context<A>,
     res: http.ServerResponse
   ) {
+    if (res.finished) {
+      return;
+    }
+
+    const headers = {
+      ...(result?.getHeaders() || {}),
+      ...ctx.headers.__getSetterData(),
+    };
+
     if (result instanceof Response) {
       const r = new Response(result.getBody(), {
-        ...result.getOptions(),
+        headers,
         context: ctx,
       });
 
@@ -256,15 +286,12 @@ export class GamanBase<A extends AppConfig> {
 
     if (typeof result === "string") {
       if (isHtmlString(result)) {
-        r = Response.html(result, { status: 200, context: ctx });
+        r = Response.html(result, { status: 200, context: ctx, headers });
       } else {
-        r = Response.text(result, { status: 200, context: ctx });
+        r = Response.text(result, { status: 200, context: ctx, headers });
       }
     } else if (result) {
-      r = Response.json(result, { status: 200, context: ctx });
-    }
-    if (res.finished) {
-      return;
+      r = Response.json(result, { status: 200, context: ctx, headers });
     }
 
     res.writeHead(
@@ -292,8 +319,8 @@ export class GamanBase<A extends AppConfig> {
       }
     });
 
-    const port = this.options.port || 3431;
-    const host = this.options.host || "localhost";
+    const port = this.options?.server?.port || 3431;
+    const host = this.options?.server?.host || "localhost";
     server.listen(port, host, () => {
       Log.log(`Server is running at http://${host}:${port}`);
     });

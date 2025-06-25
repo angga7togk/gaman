@@ -1,14 +1,20 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
-    "target": "ES2020",
-    "moduleResolution": "Node",
+    "target": "ES2022",
+    "declaration": true,
+    "moduleResolution": "Bundler",
     "outDir": "./dist",
-    "declaration": true, // Hasilkan file .d.ts
-    "emitDeclarationOnly": true, // Hanya file deklarasi
-    "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": false,
+    "skipLibCheck": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "types": ["node"]
+  },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "verbose": false
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

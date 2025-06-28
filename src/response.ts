@@ -1,60 +1,50 @@
-import type { AppConfig, Context} from "./types";
+import type { AppConfig, Context } from "./types";
 
 export interface ResponseOptions<A extends AppConfig> {
   status?: number;
   statusText?: string;
   headers?: Record<string, string>;
-  context?: Context<A>
+  context?: Context<A>;
 }
 
+export type RenderResponse<A extends AppConfig> = {
+  viewName: string;
+  viewData: Record<string, any>;
+  responseOptions?: ResponseOptions<A>;
+};
+
 export class Response<A extends AppConfig> {
-  private _status: number;
-  private _statusText: string;
-  private _headers: Record<string, string>;
-  private _body: any;
-  private _context?: Context<A>
+  public status: number;
+  public statusText: string;
+  public headers: Record<string, string>;
+  public body: any;
+  public context?: Context<A>;
 
   constructor(body?: any, options?: ResponseOptions<A>) {
-    this._status = options?.status || 200;
-    this._statusText = options?.statusText || "";
-    this._headers = options?.headers || {};
-    this._body = body;
+    this.status = options?.status || 200;
+    this.statusText = options?.statusText || "";
+    this.headers = options?.headers || {};
+    this.body = body;
     if (options?.context) {
-      this._context = options.context;
+      this.context = options.context;
       const serialized = options.context.cookies.serializeAll();
-      this._headers["Set-Cookie"] = serialized;
+      this.headers["Set-Cookie"] = serialized;
     }
-  }
-
-  public getStatus(): number {
-    return this._status;
-  }
-
-  public getStatusText(): string {
-    return this._statusText;
-  }
-
-  public getBody(): any {
-    return this._body;
-  }
-
-  public getHeaders(): Record<string, string> {
-    return this._headers;
-  }
-  public getContext(): Context<A> | undefined{
-    return this._context
   }
 
   public getOptions(): ResponseOptions<A> {
     return {
-      context: this._context,
-      headers: this._headers,
-      status: this._status,
-      statusText: this._statusText,
+      context: this.context,
+      headers: this.headers,
+      status: this.status,
+      statusText: this.statusText,
     };
   }
 
-  public static json<A extends AppConfig>(body: any, options?: ResponseOptions<A>): Response<A> {
+  public static json<A extends AppConfig>(
+    body: any,
+    options?: ResponseOptions<A>
+  ): Response<A> {
     const defaultOptions: ResponseOptions<A> = {
       headers: {
         "Content-Type": "application/json",
@@ -64,7 +54,10 @@ export class Response<A extends AppConfig> {
     return new Response(JSON.stringify(body), expandedOptions);
   }
 
-  public static text<A extends AppConfig>(body: string, options?: ResponseOptions<A>): Response<A> {
+  public static text<A extends AppConfig>(
+    body: string,
+    options?: ResponseOptions<A>
+  ): Response<A> {
     const defaultOptions: ResponseOptions<A> = {
       headers: {
         "Content-Type": "text/plain",
@@ -74,7 +67,10 @@ export class Response<A extends AppConfig> {
     return new Response(body, expandedOptions);
   }
 
-  public static html<A extends AppConfig>(body: string, options?: ResponseOptions<A>): Response<A> {
+  public static html<A extends AppConfig>(
+    body: string,
+    options?: ResponseOptions<A>
+  ): Response<A> {
     const defaultOptions: ResponseOptions<A> = {
       headers: {
         "Content-Type": "text/html",
@@ -99,7 +95,10 @@ export class Response<A extends AppConfig> {
     return new Response(buffer, expandedOptions);
   }
 
-  public static redirect<A extends AppConfig>(location: string, status: number = 302): Response<A> {
+  public static redirect<A extends AppConfig>(
+    location: string,
+    status: number = 302
+  ): Response<A> {
     const defaultOptions: ResponseOptions<A> = {
       status,
       headers: {
@@ -108,6 +107,18 @@ export class Response<A extends AppConfig> {
     };
     const expandedOptions = this.expandOptions(defaultOptions, {});
     return new Response("", expandedOptions);
+  }
+
+  public static render<A extends AppConfig>(
+    viewName: string,
+    viewData: Record<string, any> = {},
+    responseOptions?: ResponseOptions<A>
+  ): RenderResponse<A> {
+    return {
+      viewName,
+      viewData,
+      responseOptions,
+    };
   }
 
   private static expandOptions<A extends AppConfig>(

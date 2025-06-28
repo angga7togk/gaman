@@ -16,6 +16,6 @@
     "resolveFullPaths": true,
     "verbose": false
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "packages/gaman-ejs/ejs-int.ts"],
   "exclude": ["node_modules"]
 }

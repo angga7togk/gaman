@@ -72,7 +72,6 @@ export async function createContext<A extends AppConfig>(
     header: gamanRequest.header,
     headers: gamanRequest.headers,
     cookies: new Cookie(req.headers.cookie || ""),
-    response: new Response<A>(),
     url,
   };
 }

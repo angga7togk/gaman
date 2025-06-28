@@ -5,6 +5,7 @@ import type {
   NextResponse,
   RoutesDefinition,
   AppOptions,
+  IntegrationInterface,
 } from "./types";
 import http from "node:http";
 import { Log } from "./utils/logger";
@@ -20,22 +21,34 @@ import { GamanWebSocket } from "./web-socket";
 export class GamanBase<A extends AppConfig> {
   private blocks: BlockInterface<A>[] = [];
   private websocket: GamanWebSocket<A>;
+  private integrations: Array<IntegrationInterface<A>> = [];
 
   constructor(private options: AppOptions<A>) {
     this.websocket = new GamanWebSocket(this);
-  }
 
-  registerBlock(block: BlockInterface<A>) {
-    if (this.blocks.some((b) => b.path === block.path)) {
-      throw new Error(`Block '${block.path}' already exists!`);
+    // Initialize integrations
+    if (options.integrations) {
+      for (const integration of options.integrations) {
+        this.integrations.push(integration);
+        integration.onLoad?.(this.options);
+      }
     }
-    if (block.websocket) {
-      this.websocket.registerWebSocketServer(block);
+
+    // Initialize blocks
+    if (options.blocks) {
+      for (const block of options.blocks) {
+        if (this.blocks.some((b) => b.path === block.path)) {
+          throw new Error(`Block '${block.path}' already exists!`);
+        }
+        if (block.websocket) {
+          this.websocket.registerWebSocketServer(block);
+        }
+        this.blocks.push({
+          ...block,
+          path: block.path || "/",
+        });
+      }
     }
-    this.blocks.push({
-      ...block,
-      path: block.path || "/",
-    });
   }
 
   getBlock(blockPath: string): BlockInterface<A> | undefined {
@@ -54,24 +67,43 @@ export class GamanBase<A extends AppConfig> {
     const startTime = performance.now();
     const ctx = await createContext<A>(req);
     try {
-      const blocks = sortArrayByPriority<BlockInterface<A>>(
-        this.blocks,
+      const blocksAndIntegrations = sortArrayByPriority<
+        BlockInterface<A> | IntegrationInterface<A>
+      >(
+        [...this.blocks, ...this.integrations],
         "priority",
         "asc" //  1, 2, 3, 4, 5 // kalau desc: 5, 4, 3, 2, 1
       );
-      for await (const block of blocks) {
-        try {
-          /**
-           * * Jika path depannya aja udah gak sama berarti gausah di lanjutin :V
-           */
+      for await (const blockOrIntegration of blocksAndIntegrations) {
+        if ("routes" in blockOrIntegration) {
+          const block = blockOrIntegration as BlockInterface<A>;
+          try {
+            /**
+             * * Jika path depannya aja udah gak sama berarti gausah di lanjutin :V
+             */
 
-          if (!(block.path && ctx.pathname.startsWith(block.path))) {
-            continue;
-          }
+            if (!(block.path && ctx.pathname.startsWith(block.path))) {
+              continue;
+            }
 
-          if (block.includes) {
-            for (const middleware of block.includes) {
-              const result = await middleware(ctx);
+            if (block.includes) {
+              for (const middleware of block.includes) {
+                const result = await middleware(ctx);
+
+                /**
+                 * ? Kenapa harus di kurung di if(result){...} ???
+                 * * Karena di bawahnya masih ada yang harus di proses seperti routes...
+                 * * Kalau tidak di kurung maka, dia bakal jalanin middleware doang routesnya ga ke proses
+                 */
+                if (result) {
+                  return await this.handleResponse(result, ctx, res);
+                }
+              }
+            }
+
+            // Global middleware handler
+            if (block.all) {
+              const result = await block.all(ctx);
 
               /**
                * ? Kenapa harus di kurung di if(result){...} ???
@@ -79,53 +111,47 @@ export class GamanBase<A extends AppConfig> {
                * * Kalau tidak di kurung maka, dia bakal jalanin middleware doang routesnya ga ke proses
                */
               if (result) {
+                // * Set Status Log
                 return await this.handleResponse(result, ctx, res);
               }
             }
-          }
 
-          // Global middleware handler
-          if (block.all) {
-            const result = await block.all(ctx);
+            // Process routes
+            const result = await this.handleRoutes(
+              block.routes || {},
+              ctx,
+              block.path
+            );
 
             /**
-             * ? Kenapa harus di kurung di if(result){...} ???
-             * * Karena di bawahnya masih ada yang harus di proses seperti routes...
-             * * Kalau tidak di kurung maka, dia bakal jalanin middleware doang routesnya ga ke proses
+             * * Disini gausah di kurung seperti di block.all() tadi
+             * * Karna disini adalah respon akhir dari handle routes!
              */
             if (result) {
-              // * Set Status Log
               return await this.handleResponse(result, ctx, res);
             }
+          } catch (error: any) {
+            if (block.error) {
+              // ! Block Error handler
+              const result = await block.error(
+                new HttpError(403, error.message),
+                ctx
+              );
+              if (result) {
+                return await this.handleResponse(result, ctx, res);
+              }
+            }
+            Log.error(error);
+            throw new HttpError(403, error.message);
           }
-
-          // Process routes
-          const result = await this.handleRoutes(
-            block.routes || {},
-            ctx,
-            block.path
-          );
-
-          /**
-           * * Disini gausah di kurung seperti di block.all() tadi
-           * * Karna disini adalah respon akhir dari handle routes!
-           */
+        } else if ("onRequest" in blockOrIntegration) {
+          const integration = blockOrIntegration as IntegrationInterface<A>;
+          const result = integration.onRequest?.(this.options, ctx);
           if (result) {
             return await this.handleResponse(result, ctx, res);
           }
-        } catch (error: any) {
-          if (block.error) {
-            // ! Block Error handler
-            const result = await block.error(
-              new HttpError(403, error.message),
-              ctx
-            );
-            if (result) {
-             return await this.handleResponse(result, ctx, res);
-            }
-          }
-          Log.error(error);
-          throw new HttpError(403, error.message);
+        } else {
+          throw new Error("Unrecognized type in blocksAndIntegrations");
         }
       }
 
@@ -254,24 +280,53 @@ export class GamanBase<A extends AppConfig> {
       return;
     }
 
+    if (this.integrations) {
+      const integrations = sortArrayByPriority<IntegrationInterface<A>>(
+        this.integrations,
+        "priority",
+        "asc"
+      );
+      for (const integration of integrations) {
+        let _result;
+        /**
+         * * Fungsi untuk render view engine
+         * * dari integrations
+         */
+        if (
+          typeof result === "object" &&
+          "viewName" in result &&
+          integration.onRender
+        ) {
+          _result = await integration.onRender(this.options, ctx, result);
+        } else if (integration.onResponse) {
+          _result = await integration.onResponse(this.options, ctx, result);
+        }
+        if (_result) {
+          result = _result;
+          break;
+        }
+      }
+    }
+
     const headers = {
-      ...(result instanceof Response ? result?.getHeaders() || {} : {}),
+      ...(result instanceof Response ? result?.headers || {} : {}),
       ...ctx.headers.__getSetterData(),
     };
 
     if (result instanceof Response) {
-      const r = new Response(result.getBody(), {
+      const r = new Response(result.body, {
         headers,
         context: ctx,
       });
 
-      Log.setStatus(r.getStatus());
+      Log.setStatus(r.status);
       // * Kasih Response
-      res.writeHead(r.getStatus(), r.getStatusText(), r.getHeaders());
-      return res.end(r.getBody());
+      res.writeHead(r.status, r.statusText, r.headers);
+      return res.end(r.body);
     }
 
     let r: Response<A> | undefined;
+    console.log(result);
 
     if (typeof result === "string") {
       if (isHtmlString(result)) {
@@ -283,13 +338,9 @@ export class GamanBase<A extends AppConfig> {
       r = Response.json(result, { status: 200, context: ctx, headers });
     }
 
-    Log.setStatus(r?.getStatus() || 404);
-    res.writeHead(
-      r?.getStatus() || 404,
-      r?.getStatusText() || "",
-      r?.getHeaders() || {}
-    );
-    return res.end(r?.getBody() || "404 Not Found");
+    Log.setStatus(r?.status || 404);
+    res.writeHead(r?.status || 404, r?.statusText || "", r?.headers || {});
+    return res.end(r?.body || "404 Not Found");
   }
 
   listen() {

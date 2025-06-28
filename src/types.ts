@@ -1,7 +1,7 @@
 import type { WebSocket, WebSocketServer } from "ws";
 import type { Cookie } from "./utils/cookie";
 import type HttpError from "./error/HttpError";
-import type { Response } from "./response";
+import type { RenderResponse, Response } from "./response";
 import { ClientRequest } from "http";
 import { Headers } from "./utils/headers";
 
@@ -20,16 +20,94 @@ export {};
 /*                                    Types                                   */
 /* -------------------------------------------------------------------------- */
 
+export type IntegrationInterface<A extends AppConfig = AppConfig> = {
+  /**
+   * The name of the integration.
+   * This property is required.
+   */
+  name: string;
+
+  /**
+   * The priority of the integration.
+   * This property is required and determines the execution order of integrations.
+   */
+  priority: Priority;
+
+  /**
+   * Callback executed when the integration is loaded.
+   * Use this to perform setup or initialization tasks.
+   */
+  onLoad?: (app: AppOptions<A>) => void;
+
+  /**
+   * Callback executed when the integration is disabled.
+   * Use this to clean up or remove configurations.
+   */
+  onDisabled?: (app: AppOptions<A>) => void;
+
+  /**
+   * Callback executed when a client makes a request to the server.
+   * This allows you to modify the context or handle specific request logic.
+   */
+  onRequest?: (app: AppOptions<A>, ctx: Context<A>) => NextResponse<A>;
+
+  /**
+   * Callback executed before the response is sent to the client.
+   * Use this to modify or enhance the response.
+   */
+  onResponse?: (
+    app: AppOptions<A>,
+    ctx: Context<A>,
+    res: NextResponse<A>
+  ) => NextResponse<A>;
+
+  /**
+   * Callback executed when rendering a view using a view engine.
+   * This is specifically for handling view engine rendering, such as EJS or other template engines.
+   * Use this to modify the context or response before rendering the view.
+   */
+  onRender?: (
+    app: AppOptions<A>,
+    ctx: Context<A>,
+    res: RenderResponse<A>
+  ) => NextResponse<A>;
+};
+
 export type AppOptions<A extends AppConfig> = {
-  includes?: Array<Handler<A>>;
+  /**
+   * List of integrations to be used in the application.
+   * Integrations can modify app behavior or add features.
+   */
+  integrations?: Array<IntegrationInterface<A>>;
+
+  /**
+   * List of blocks defining routes, middlewares, and other functionalities for the application.
+   */
   blocks?: Array<BlockInterface<A>>;
+
+  /**
+   * Global error handler for handling application-wide errors.
+   * Called with the error and the current request context.
+   */
   error?: (error: Error, ctx: Context<A>) => NextResponse<A>;
+
+  /**
+   * Server configuration options, including host and port.
+   */
   server?: {
+    /**
+     * The host address for the server.
+     * Defaults to 'localhost' if not specified.
+     */
     host?: string;
+
+    /**
+     * The port number for the server.
+     * Defaults to 3431 if not specified.
+     */
     port?: number;
   };
 };
-
 export type LocalsEmpty = object;
 export type EnvEmpty = object;
 
@@ -94,14 +172,16 @@ export interface Context<A extends AppConfig = AppConfig> {
   headers: Headers;
   header: (key: string) => any;
   request: Request;
-  response: Response<A>;
 }
 
 export type NextResponse<A extends AppConfig> =
-  | Promise<Response<A> | undefined>
+  | Promise<Response<A> | RenderResponse<A> | undefined>
   | Response<A>
-  | undefined
-  | any;
+  | object
+  | Array<any>
+  | string
+  | RenderResponse<A>
+  | undefined;
 
 export interface Router<A extends AppConfig> {
   ALL?: Handler<A> | Handler<A>[];

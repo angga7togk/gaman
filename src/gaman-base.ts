@@ -17,6 +17,7 @@ import { performance } from "perf_hooks";
 import { Color } from "./utils/color";
 import HttpError from "./error/HttpError";
 import { GamanWebSocket } from "./web-socket";
+import { Readable } from "node:stream";
 
 export class GamanBase<A extends AppConfig> {
   private blocks: BlockInterface<A>[] = [];
@@ -150,8 +151,6 @@ export class GamanBase<A extends AppConfig> {
           if (result) {
             return await this.handleResponse(result, ctx, res);
           }
-        } else {
-          throw new Error("Unrecognized type in blocksAndIntegrations");
         }
       }
 
@@ -320,13 +319,19 @@ export class GamanBase<A extends AppConfig> {
       });
 
       Log.setStatus(r.status);
-      // * Kasih Response
+
+      // Jika body adalah stream, gunakan pipe untuk mengirimkannya
+      if (r.body instanceof Readable) {
+        res.writeHead(r.status, r.statusText, r.headers);
+        return r.body.pipe(res);
+      }
+
+      // Respon biasa
       res.writeHead(r.status, r.statusText, r.headers);
       return res.end(r.body);
     }
 
     let r: Response<A> | undefined;
-    console.log(result);
 
     if (typeof result === "string") {
       if (isHtmlString(result)) {

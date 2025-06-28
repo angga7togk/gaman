@@ -121,6 +121,24 @@ export class Response<A extends AppConfig> {
     };
   }
 
+  public static stream<A extends AppConfig>(
+  readableStream: NodeJS.ReadableStream,
+  options?: ResponseOptions<A>
+): Response<A> {
+  const defaultOptions: ResponseOptions<A> = {
+    headers: {
+      "Content-Type": "application/octet-stream",
+    },
+  };
+  const expandedOptions = this.expandOptions(defaultOptions, options);
+
+  // Jangan ubah body-nya; gunakan langsung readableStream
+  const response = new Response(null, expandedOptions);
+  response.body = readableStream;
+  return response;
+}
+
+
   private static expandOptions<A extends AppConfig>(
     defaults: ResponseOptions<A>,
     options?: ResponseOptions<A>

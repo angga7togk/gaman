@@ -1,0 +1,84 @@
+/**
+ * @package @gaman/static
+ * GamanJS integration for serving static files.
+ */
+
+import { defineIntegration, Response } from "gaman";
+import { createReadStream, promises as fsPromises } from "fs";
+import { join, extname } from "path";
+
+/**
+ * MIME type mappings for static file responses.
+ */
+const mimeType: Record<string, string> = {
+  ".ico": "image/x-icon",
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".json": "application/json",
+  ".css": "text/css",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".wav": "audio/wav",
+  ".mp3": "audio/mpeg",
+  ".svg": "image/svg+xml",
+  ".pdf": "application/pdf",
+  ".zip": "application/zip",
+  ".doc": "application/msword",
+  ".eot": "application/vnd.ms-fontobject",
+  ".ttf": "application/x-font-ttf",
+};
+
+/**
+ * Options for the static file integration.
+ */
+export interface StaticFileOptions {
+  /**
+   * Directory to serve static files from.
+   * Default: `public`.
+   */
+  staticPath?: string;
+}
+
+export default function staticFileIntegration(
+  options: StaticFileOptions = {}
+) {
+  const staticPath = options.staticPath || "public";
+
+  return defineIntegration({
+    name: "static",
+    priority: "low",
+    async onRequest(_app, ctx) {
+      try {
+        // Resolve the file path
+        const filePath = join(process.cwd(), staticPath, ctx.pathname);
+
+        // Check if the file exists
+        const stats = await fsPromises.stat(filePath);
+        if (!stats.isFile()) {
+          return; // Let other integrations handle the request
+        }
+
+        // Determine MIME type
+        const ext = extname(filePath);
+        const contentType = mimeType[ext] || "application/octet-stream";
+
+        // Create a readable stream for the file
+        const fileStream = createReadStream(filePath);
+
+        // Return the file as a response
+        return Response.stream(fileStream, {
+          status: 200,
+          headers: {
+            "Content-Type": contentType,
+          },
+        });
+      } catch (err) {
+        // Ignore errors for file not found or access issues
+        if (err.code === "ENOENT" || err.code === "EACCES") {
+          return; // Let other integrations handle the request
+        }
+        throw err; // Rethrow other errors
+      }
+    },
+  });
+}

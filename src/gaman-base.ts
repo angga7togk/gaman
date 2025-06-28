@@ -34,7 +34,7 @@ export class GamanBase<A extends AppConfig> {
     }
     this.blocks.push({
       ...block,
-      path: block.path || "/"
+      path: block.path || "/",
     });
   }
 
@@ -79,8 +79,6 @@ export class GamanBase<A extends AppConfig> {
                * * Kalau tidak di kurung maka, dia bakal jalanin middleware doang routesnya ga ke proses
                */
               if (result) {
-                // * Set Status Log
-                Log.setStatus(result.getStatus());
                 return await this.handleResponse(result, ctx, res);
               }
             }
@@ -97,7 +95,6 @@ export class GamanBase<A extends AppConfig> {
              */
             if (result) {
               // * Set Status Log
-              Log.setStatus(result.getStatus());
               return await this.handleResponse(result, ctx, res);
             }
           }
@@ -114,8 +111,6 @@ export class GamanBase<A extends AppConfig> {
            * * Karna disini adalah respon akhir dari handle routes!
            */
           if (result) {
-            // * Set Status Log
-            Log.setStatus(result.getStatus());
             return await this.handleResponse(result, ctx, res);
           }
         } catch (error: any) {
@@ -126,9 +121,7 @@ export class GamanBase<A extends AppConfig> {
               ctx
             );
             if (result) {
-              // * Set Status Log
-              Log.setStatus(result.getStatus());
-              return result;
+             return await this.handleResponse(result, ctx, res);
             }
           }
           Log.error(error);
@@ -137,9 +130,6 @@ export class GamanBase<A extends AppConfig> {
       }
 
       // not found
-
-      // * Set Status Log
-      Log.setStatus(404);
       return await this.handleResponse(undefined, ctx, res);
     } catch (error: any) {
       // ! Handler Error keseluruhan system
@@ -147,8 +137,6 @@ export class GamanBase<A extends AppConfig> {
       if (this.options.error) {
         const result = await this.options.error(error, ctx);
         if (result) {
-          // * Set Status Log
-          Log.setStatus(result.getStatus());
           return await this.handleResponse(result, ctx, res);
         }
       }
@@ -267,7 +255,7 @@ export class GamanBase<A extends AppConfig> {
     }
 
     const headers = {
-      ...(result?.getHeaders() || {}),
+      ...(result instanceof Response ? result?.getHeaders() || {} : {}),
       ...ctx.headers.__getSetterData(),
     };
 
@@ -277,6 +265,7 @@ export class GamanBase<A extends AppConfig> {
         context: ctx,
       });
 
+      Log.setStatus(r.getStatus());
       // * Kasih Response
       res.writeHead(r.getStatus(), r.getStatusText(), r.getHeaders());
       return res.end(r.getBody());
@@ -294,6 +283,7 @@ export class GamanBase<A extends AppConfig> {
       r = Response.json(result, { status: 200, context: ctx, headers });
     }
 
+    Log.setStatus(r?.getStatus() || 404);
     res.writeHead(
       r?.getStatus() || 404,
       r?.getStatusText() || "",

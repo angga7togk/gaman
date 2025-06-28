@@ -2,7 +2,8 @@ import gaman, { defineBlock, Response } from "../src";
 const blocks = defineBlock({
   routes: {
     "/": (ctx) => {
-      return Response.json({ message: "❤️ Welcome to GamanJS" });
+      ads;
+      return "asdasd";
     },
     // Middleware with path
     "/article/*": (ctx) => {
@@ -17,7 +18,7 @@ const blocks = defineBlock({
       ],
       "/json": {
         GET: (ctx) => {
-          const userName = ctx.locals!.userName;
+          const userName = ctx.locals.userName;
 
           // return like Response.json()
           return {
@@ -39,10 +40,11 @@ const blocks = defineBlock({
 });
 gaman.serv({
   server: {
-    port: 3441
+    port: 3441,
   },
   blocks: [blocks],
-  error(error, ctx) {
-    console.log(error)
+
+  error: (err, ctx) => {
+    return Response.json({ message: "Internal server erro!" }, { status: 500 });
   },
 });

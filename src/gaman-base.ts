@@ -11,7 +11,7 @@ import http from "node:http";
 import { Log } from "./utils/logger";
 import { createContext } from "./context";
 import { formatPath, isHtmlString } from "./utils/utils";
-import { Response } from "./response";
+import { RenderResponse, Response } from "./response";
 import { sortArrayByPriority } from "./utils/priority";
 import { performance } from "perf_hooks";
 import { Color } from "./utils/color";
@@ -147,7 +147,7 @@ export class GamanBase<A extends AppConfig> {
           }
         } else if ("onRequest" in blockOrIntegration) {
           const integration = blockOrIntegration as IntegrationInterface<A>;
-          const result = integration.onRequest?.(this.options, ctx);
+          const result = await integration.onRequest?.(this.options, ctx);
           if (result) {
             return await this.handleResponse(result, ctx, res);
           }
@@ -271,13 +271,17 @@ export class GamanBase<A extends AppConfig> {
   }
 
   private async handleResponse(
-    result: NextResponse<A>,
+    result:
+      | string
+      | object
+      | any[]
+      | Promise<Response<A> | RenderResponse<A>>
+      | Response<A>
+      | RenderResponse<A>,
     ctx: Context<A>,
     res: http.ServerResponse
   ) {
-    if (res.finished) {
-      return;
-    }
+    if (res.finished) return;
 
     if (this.integrations) {
       const integrations = sortArrayByPriority<IntegrationInterface<A>>(
@@ -285,12 +289,9 @@ export class GamanBase<A extends AppConfig> {
         "priority",
         "asc"
       );
+
       for (const integration of integrations) {
         let _result;
-        /**
-         * * Fungsi untuk render view engine
-         * * dari integrations
-         */
         if (
           typeof result === "object" &&
           "viewName" in result &&
@@ -300,6 +301,7 @@ export class GamanBase<A extends AppConfig> {
         } else if (integration.onResponse) {
           _result = await integration.onResponse(this.options, ctx, result);
         }
+
         if (_result) {
           result = _result;
           break;
@@ -308,7 +310,7 @@ export class GamanBase<A extends AppConfig> {
     }
 
     const headers = {
-      ...(result instanceof Response ? result?.headers || {} : {}),
+      ...(result instanceof Response ? result.headers || {} : {}),
       ...ctx.headers.__getSetterData(),
     };
 
@@ -320,13 +322,13 @@ export class GamanBase<A extends AppConfig> {
 
       Log.setStatus(r.status);
 
-      // Jika body adalah stream, gunakan pipe untuk mengirimkannya
-      if (r.body instanceof Readable) {
-        res.writeHead(r.status, r.statusText, r.headers);
-        return r.body.pipe(res);
+      if (result.body instanceof Readable) {
+        // Streaming response
+        res.writeHead(result.status, result.statusText, result.headers);
+        return result.body.pipe(res);
       }
 
-      // Respon biasa
+      // Normal response
       res.writeHead(r.status, r.statusText, r.headers);
       return res.end(r.body);
     }

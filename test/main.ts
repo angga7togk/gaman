@@ -1,5 +1,6 @@
-import gaman, { defineBlock, Response } from "../src";
-import ejsInt from "./ejs";
+import gamanEJS from "@gaman/ejs";
+import staticFileIntegration from "@gaman/static";
+import gaman, { defineBlock, Response } from "gaman";
 const blocks = defineBlock({
   routes: {
     "/": async (ctx) => {
@@ -8,7 +9,9 @@ const blocks = defineBlock({
   },
 });
 gaman.serv({
-  integrations: [ejsInt],
+  integrations: [staticFileIntegration(), gamanEJS({
+    viewPath: 'test/views'
+  })],
   server: {
     port: 3441,
   },

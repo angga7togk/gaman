@@ -5,6 +5,3 @@ export function defineMiddleware<A extends AppConfig = AppConfig>(
 ): NextResponse<A> {
   return handler;
 }
-
-export { basicAuth } from "./basic-auth";
-export { cors } from "./cors";

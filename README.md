@@ -19,14 +19,20 @@
 
 "Gaman" (我慢) — patience, perseverance, and resilience. These principles are at the heart of GamanJS, empowering developers to build robust and modular web applications effortlessly.
 
-## ✨ Features
+## ✨ Packages
 
-- **Tree Routing & Modular Architecture:** GamanJS introduces the concept of Blocks for routing and modularity. Blocks are self-contained modules that handle specific paths, making your application scalable and maintainable.
-- **Simple Middleware:** Easily attach middleware for routes or specific paths.
-- **Extensible Design:** Add your logic to enhance or modify the framework with minimal effort.
-- **Lightweight & Performant:** Built with efficiency in mind, GamanJS is designed to handle real-world applications with ease.
+| Package                                        | Release Notes |
+| ---------------------------------------------- | ------------- |
+| [gaman](https://github.com/7TogkID/gaman)      | v0.0.21       |
+| [create-gaman](packages/create-gaman)          | v0.0.1        |
+| [@gaman/ejs](packages/gaman-ejs)               | v0.0.11       |
+| [@gaman/static](packages/gaman-static)         | v0.0.3        |
+| [@gaman/cors](packages/gaman-cors)             | v0.0.1        |
+| [@gaman/basic-auth](packages/gaman-basic-auth) | v0.0.1        |
+| [@gaman/cli](packages/gaman-cli)               | v0.0.3        |
 
 ## 🚀 Get Started
+
 For complete documentation, examples, and best practices, visit the **GamanWiki**:  
 [https://github.com/7TogkID/gaman/wiki](https://github.com/7TogkID/gaman/wiki)
 
@@ -35,7 +41,7 @@ For complete documentation, examples, and best practices, visit the **GamanWiki*
 You can install the GamanJS CLI globally using your preferred package manager:
 
 ```bash
-npm i -g @gaman/cli 
+npm i -g @gaman/cli
 ```
 
 ### Create a New Project

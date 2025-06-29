@@ -1,6 +1,6 @@
 {
   "name": "@gaman/static",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Static Files HTTP integration for GamanJS framework",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "build:cjs": "bun build ./index.ts --outdir ./dist/cjs --format cjs --external gaman",
-    "build:esm": "bun build ./index.ts --outdir ./dist --external gaman --external ejs",
+    "build:esm": "bun build ./index.ts --outdir ./dist --target node --external gaman",
     "build": "rm -rf dist && npm run build:esm && tsc"
   },
   "keywords": [
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "gaman": "^0.0.22",
+    "gaman": "^0.0.23",
     "typescript": "^5"
   }
 }

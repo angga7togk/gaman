@@ -3,7 +3,7 @@
  * GamanJS integration for serving static files.
  */
 
-import { defineIntegration, Response } from "gaman";
+import { defineIntegration, Priority, Response } from "gaman";
 import { createReadStream, promises as fsPromises } from "fs";
 import { join, extname } from "path";
 
@@ -36,17 +36,28 @@ export interface StaticFileOptions {
    * Directory to serve static files from.
    * Default: `public`.
    */
-  staticPath?: string;
+  path?: string;
+
+  /**
+   * Added your mimeTypes
+   * @example {".mp3": "audio/mpeg"}
+   */
+  newMimeTypes?: Record<string, string>;
+
+  /**
+   * Priority Integrations
+   * @default low
+   */
+  priority?: Priority;
 }
 
-export default function staticFileIntegration(
-  options: StaticFileOptions = {}
-) {
-  const staticPath = options.staticPath || "public";
+export function staticGaman(options: StaticFileOptions = {}) {
+  const staticPath = options.path || "public";
+  const mimeTypes = { ...mimeType, ...(options.newMimeTypes || {}) };
 
   return defineIntegration({
     name: "static",
-    priority: "low",
+    priority: options.priority || "low",
     async onRequest(_app, ctx) {
       try {
         // Resolve the file path
@@ -60,7 +71,7 @@ export default function staticFileIntegration(
 
         // Determine MIME type
         const ext = extname(filePath);
-        const contentType = mimeType[ext] || "application/octet-stream";
+        const contentType = mimeTypes[ext] || "application/octet-stream";
 
         // Create a readable stream for the file
         const fileStream = createReadStream(filePath);
@@ -72,7 +83,7 @@ export default function staticFileIntegration(
             "Content-Type": contentType,
           },
         });
-      } catch (err) {
+      } catch (err: any) {
         // Ignore errors for file not found or access issues
         if (err.code === "ENOENT" || err.code === "EACCES") {
           return; // Let other integrations handle the request

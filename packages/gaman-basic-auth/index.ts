@@ -48,7 +48,7 @@ export type BasicAuthOptions =
       invalidAuthMessage?: string | object | MessageFunction;
     };
 
-import { defineMiddleware, next, Response, Context } from "gaman";
+import { defineMiddleware, next, Response, Context, Handler, AppConfig } from "gaman";
 
 /**
  * Basic Authentication middleware for Gaman.
@@ -57,7 +57,7 @@ import { defineMiddleware, next, Response, Context } from "gaman";
  *
  * @throws {Error} If neither `username/password` nor `verifyAuth` is provided.
  */
-export const basicAuth = (options: BasicAuthOptions) => {
+export const basicAuth = (options: BasicAuthOptions): Handler<AppConfig> => {
   // Determine if static credentials or verifyAuth function is provided
   const usernameAndPassword = "username" in options && "password" in options;
   const verifyAuth = "verifyAuth" in options;
@@ -91,7 +91,7 @@ export const basicAuth = (options: BasicAuthOptions) => {
     return credentials.split(":");
   }
 
-  return defineMiddleware(async (ctx) => {
+  return async (ctx) => {
     const cred = getCredentials(ctx.request.headers.get("Authorization"));
 
     // Validate credentials
@@ -125,5 +125,5 @@ export const basicAuth = (options: BasicAuthOptions) => {
     return typeof responseMsg === "string"
       ? new Response(responseMsg, { status, headers })
       : Response.json(responseMsg, { status, headers });
-  });
+  };
 };

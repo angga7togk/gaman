@@ -1,6 +1,6 @@
 {
   "name": "@gaman/basic-auth",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Basic Auth Middleware for GamanJS framework",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

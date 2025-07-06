@@ -1,5 +1,5 @@
 <p align="right">
-  <img src=".github/images/indonesia.png" height="23px">
+  <img src="https://github.com/7TogkID/gaman/blob/main/?raw=true" width="23px">
 </p>
 
 <p align="center">

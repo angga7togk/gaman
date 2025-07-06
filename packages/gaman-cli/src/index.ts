@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+
+yargs(hideBin(process.argv))
+  .scriptName("gaman")
+  .usage("$0 <cmd> [args]")
+  .command(
+    "dev",
+    "Run the application in development mode.",
+    () => {},
+    async (argv) => {
+      await import("./commands/dev.js");
+    }
+  )
+  .command(
+    "make:block <name>",
+    "Generate a new Gaman block",
+    (yargs) => {
+      return yargs.positional("name", {
+        type: "string",
+        describe: "Name of the block to create",
+      });
+    },
+    async (argv) => {
+      const { default: generateBlock } = await import(
+        "./commands/make/block.js"
+      );
+      await generateBlock(argv.name as string);
+    }
+  )
+  .demandCommand(1, "You need at least one command before moving on")
+  .help().argv;

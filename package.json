@@ -1,6 +1,6 @@
 {
   "name": "gaman",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,6 +21,9 @@
   "license": "ISC",
   "repository": {
     "url": "https://github.com/7TogkID/gaman"
+  },
+  "peerDependencies": {
+    "@gaman/cli": "0.0.7"
   },
   "devDependencies": {
     "@gaman/cors": "^0.0.2",

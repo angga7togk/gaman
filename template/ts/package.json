@@ -1,0 +1,16 @@
+{
+  "name": "gaman-app",
+  "version": "0.0.1",
+  "main": "dist/src/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "gaman dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "gaman": "^0.0.28"
+  }
+}

@@ -1,10 +1,10 @@
 <p align="right">
-  <img src=".github/images/indonesia.png" height="23px">
+  <img src="https://github.com/7TogkID/gaman/blob/main/.github/images/indonesia.png?raw=true" width="23px">
 </p>
 
 <p align="center">
   <a href="https://github.com/7TogkID/gaman">
-    <img src=".github/images/gaman.png" width="25%">
+    <img src="https://github.com/7TogkID/gaman/blob/main/.github/images/gaman.png?raw=true" width="25%">
   </a>
 </p>
 
@@ -19,31 +19,29 @@
 
 "Gaman" (我慢) — patience, perseverance, and resilience. These principles are at the heart of GamanJS, empowering developers to build robust and modular web applications effortlessly.
 
-## ✨ Features
+## ✨ Packages
 
-- **Tree Routing & Modular Architecture:** GamanJS introduces the concept of Blocks for routing and modularity. Blocks are self-contained modules that handle specific paths, making your application scalable and maintainable.
-- **Simple Middleware:** Easily attach middleware for routes or specific paths.
-- **Extensible Design:** Add your logic to enhance or modify the framework with minimal effort.
-- **Lightweight & Performant:** Built with efficiency in mind, GamanJS is designed to handle real-world applications with ease.
+| Package                                        | Release Notes |
+| ---------------------------------------------- | ------------- |
+| [gaman](https://github.com/7TogkID/gaman)      | v0.0.28       |
+| [create-gaman](packages/create-gaman)          | v0.0.1        |
+| [@gaman/ejs](packages/gaman-ejs)               | v0.0.11       |
+| [@gaman/static](packages/gaman-static)         | v0.0.3        |
+| [@gaman/cors](packages/gaman-cors)             | v0.0.2        |
+| [@gaman/basic-auth](packages/gaman-basic-auth) | v0.0.2        |
+| [@gaman/cli](packages/gaman-cli)               | v0.0.8        |
 
 ## 🚀 Get Started
+
 For complete documentation, examples, and best practices, visit the **GamanWiki**:  
 [https://github.com/7TogkID/gaman/wiki](https://github.com/7TogkID/gaman/wiki)
 
-### Install the CLI
-
-You can install the GamanJS CLI globally using your preferred package manager:
-
-```bash
-npm i -g @gaman/cli 
-```
-
 ### Create a New Project
 
-To create a new GamanJS project, use the `gaman new` command:
+There are two ways to scaffold a new GamanJS project:
 
 ```bash
-gaman new
+npx create-gaman@latest
 ```
 
 This will scaffold a new GamanJS project with the necessary structure.
@@ -53,16 +51,7 @@ This will scaffold a new GamanJS project with the necessary structure.
 Start your server with:
 
 ```bash
-# Using Node
 npm run dev
-```
-
-## 🛠 Updating the CLI
-
-To update your GamanJS CLI to the latest version:
-
-```bash
-gaman upgrade
 ```
 
 ## 📂 Project Structure

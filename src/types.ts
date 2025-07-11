@@ -223,6 +223,11 @@ export interface BlockInterface<A extends AppConfig> {
   includes?: Array<Handler<A>>;
 
   /**
+   * Array of children blocks
+   */
+  childrens?: Array<BlockInterface<A>>;
+
+  /**
    * Determines the priority of the block.
    * Higher priorities are processed earlier.
    */

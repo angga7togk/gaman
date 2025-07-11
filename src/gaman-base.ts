@@ -18,6 +18,7 @@ import { Color } from "./utils/color";
 import HttpError from "./error/HttpError";
 import { GamanWebSocket } from "./web-socket";
 import { Readable } from "node:stream";
+import path from "node:path";
 
 export class GamanBase<A extends AppConfig> {
   private blocks: BlockInterface<A>[] = [];
@@ -35,19 +36,57 @@ export class GamanBase<A extends AppConfig> {
       }
     }
 
-    // Initialize blocks
+    /**
+     * * EN: Initialize Blocks and childrens
+     * * ID: inisialisasi blocks dan childrens nya
+     */
     if (options.blocks) {
       for (const block of options.blocks) {
         if (this.blocks.some((b) => b.path === block.path)) {
           throw new Error(`Block '${block.path}' already exists!`);
         }
+        
         if (block.websocket) {
           this.websocket.registerWebSocketServer(block);
         }
+
         this.blocks.push({
           ...block,
           path: block.path || "/",
         });
+
+        // Initialize block childrens
+        function initChilderns(
+          basePath: string,
+          childrens: Array<BlockInterface<A>>,
+          app: GamanBase<A>
+        ) {
+          for (const blockChild of childrens) {
+            const _path = path.join(basePath, blockChild.path);
+            if (app.blocks.some((b) => b.path === _path)) {
+              throw new Error(`Block '${_path}' already exists!`);
+            }
+
+            if (blockChild.websocket) {
+              app.websocket.registerWebSocketServer(blockChild);
+            }
+
+            app.blocks.push({
+              ...blockChild,
+              path: _path || "/",
+            });
+
+            /**
+             * * EN: initialize childerns from children
+             * * ID: inisialisasi childrens dari children
+             */
+            if (blockChild.childrens) {
+              initChilderns(_path, blockChild.childrens, app);
+            }
+          }
+        }
+        // * init childrens
+        initChilderns(block.path, block.childrens || [], this);
       }
     }
   }

@@ -1,12 +1,15 @@
-export function formatPath(path: string): string {
+export function formatPath(path: string, strict = false): string {
   let formattedPath = path
     // Pastikan tidak ada duplikasi slash
     .replace(/\/+/g, "/")
     // Hapus wildcard di tengah selain yang diawali atau diakhiri
     .replace(/\/\*(?!\/|$)/g, "/")
-    .replace(/(?!^|\/)\*(?=\/)/g, "/")
-    // Hapus trailing slash kecuali hanya "/"
-    .replace(/\/$/, "");
+    .replace(/(?!^|\/)\*(?=\/)/g, "/");
+
+  // Kalau strict = false, hapus trailing slash (kecuali hanya "/")
+  if (!strict && formattedPath !== "/") {
+    formattedPath = formattedPath.replace(/\/$/, "");
+  }
 
   // Tambahkan "/" di awal jika hilang
   if (!formattedPath.startsWith("/")) {
@@ -17,7 +20,7 @@ export function formatPath(path: string): string {
   if (formattedPath === "") {
     formattedPath = "/";
   }
-  
+
   return formattedPath;
 }
 

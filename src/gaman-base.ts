@@ -25,7 +25,12 @@ export class GamanBase<A extends AppConfig> {
   private websocket: GamanWebSocket<A>;
   private integrations: Array<IntegrationInterface<A>> = [];
 
+  private strict = false;
+
   constructor(private options: AppOptions<A>) {
+    if (options.strict) {
+      this.strict = options.strict;
+    }
     this.websocket = new GamanWebSocket(this);
 
     // Initialize integrations
@@ -42,17 +47,18 @@ export class GamanBase<A extends AppConfig> {
      */
     if (options.blocks) {
       for (const block of options.blocks) {
-        if (this.blocks.some((b) => b.path === block.path)) {
-          throw new Error(`Block '${block.path}' already exists!`);
+        const blockPath = block.path || "/";
+        if (this.blocks.some((b) => b.path === blockPath)) {
+          throw new Error(`Block '${blockPath}' already exists!`);
         }
-        
+
         if (block.websocket) {
           this.websocket.registerWebSocketServer(block);
         }
 
-        this.blocks.push({
+        this.registerBlock({
           ...block,
-          path: block.path || "/",
+          path: blockPath,
         });
 
         // Initialize block childrens
@@ -62,18 +68,18 @@ export class GamanBase<A extends AppConfig> {
           app: GamanBase<A>
         ) {
           for (const blockChild of childrens) {
-            const _path = path.join(basePath, blockChild.path);
-            if (app.blocks.some((b) => b.path === _path)) {
-              throw new Error(`Block '${_path}' already exists!`);
+            const childPath = path.join(basePath, blockChild.path);
+            if (app.blocks.some((b) => b.path === childPath)) {
+              throw new Error(`Block '${childPath}' already exists!`);
             }
 
             if (blockChild.websocket) {
               app.websocket.registerWebSocketServer(blockChild);
             }
 
-            app.blocks.push({
+            app.registerBlock({
               ...blockChild,
-              path: _path || "/",
+              path: childPath || "/",
             });
 
             /**
@@ -81,22 +87,35 @@ export class GamanBase<A extends AppConfig> {
              * * ID: inisialisasi childrens dari children
              */
             if (blockChild.childrens) {
-              initChilderns(_path, blockChild.childrens, app);
+              initChilderns(childPath, blockChild.childrens, app);
             }
           }
         }
         // * init childrens
-        initChilderns(block.path, block.childrens || [], this);
+        initChilderns(blockPath, block.childrens || [], this);
       }
     }
   }
 
   getBlock(blockPath: string): BlockInterface<A> | undefined {
-    const path = formatPath(blockPath);
+    const path = formatPath(blockPath, this.strict);
     const block: BlockInterface<A> | undefined = this.blocks.find(
-      (b) => formatPath(b.path || "/") === path
+      (b) => formatPath(b.path, this.strict) === path
     );
     return block;
+  }
+
+  registerBlock(block: BlockInterface<A>) {
+    // * Kasih "/" di belakang nya kalau strict
+
+    const _path = `${formatPath(block.path, this.strict)}${
+      this.strict ? "/" : ""
+    }`;
+    Log.log(`block: ${_path} registered`);
+    this.blocks.push({
+      ...block,
+      path: _path,
+    });
   }
 
   private async requestHandle(
@@ -225,14 +244,21 @@ export class GamanBase<A extends AppConfig> {
     basePath: string = "/"
   ): Promise<NextResponse<A>> {
     for await (const [path, handler] of Object.entries(routes)) {
-      // * format path biar bisa nested path
-      const fullPath = formatPath(`${basePath}/${path}`);
+      /**
+       * * format path biar bisa nested path
+       * *
+       * * dan di belakang nya kasih "/" kalau dia strict
+       */
+      const fullPath = `${formatPath(`${basePath}/${path}`, this.strict)}${
+        this.strict ? "/" : ""
+      }`;
 
       // * setiap request di createParamRegex nya dari path Server
       const regexParam = this.createParamRegex(fullPath);
 
       // ? apakah path dari client dan path server itu valid?
-      const match = regexParam.regex.exec(ctx.pathname);
+      // * pakai ctx.request.url biar responsif terhadap strict url semisal "/user/detail/" ada "/" di belakang
+      const match = regexParam.regex.exec(ctx.request.url);
 
       /**
        * * Jika match param itu tidak null

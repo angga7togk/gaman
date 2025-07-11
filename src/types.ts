@@ -75,6 +75,12 @@ export type IntegrationInterface<A extends AppConfig = AppConfig> = {
 
 export type AppOptions<A extends AppConfig> = {
   /**
+   * must use slash '/' at the end of the path
+   * @example '/user/detail/'
+   */
+  strict?: boolean;
+
+  /**
    * List of integrations to be used in the application.
    * Integrations can modify app behavior or add features.
    */
@@ -211,12 +217,6 @@ export interface BlockConfig {
  * Represents the structure of a block in the application.
  */
 export interface BlockInterface<A extends AppConfig> {
-  /**
-   * must use slash '/' at the end of the path
-   * @example '/user/detail/'
-   */
-  strict?: boolean;
-
   /**
    * Array of included middlewares
    */

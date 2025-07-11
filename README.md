@@ -23,7 +23,7 @@
 
 | Package                                        | Release Notes |
 | ---------------------------------------------- | ------------- |
-| [gaman](https://github.com/7TogkID/gaman)      | v0.0.28       |
+| [gaman](https://github.com/7TogkID/gaman)      | v0.0.30       |
 | [create-gaman](packages/create-gaman)          | v0.0.1        |
 | [@gaman/ejs](packages/gaman-ejs)               | v0.0.11       |
 | [@gaman/static](packages/gaman-static)         | v0.0.3        |

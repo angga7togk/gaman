@@ -111,7 +111,6 @@ export class GamanBase<A extends AppConfig> {
     const _path = `${formatPath(block.path, this.strict)}${
       this.strict ? "/" : ""
     }`;
-    Log.log(`block: ${_path} registered`);
     this.blocks.push({
       ...block,
       path: _path,

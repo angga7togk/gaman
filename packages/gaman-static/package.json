@@ -1,6 +1,6 @@
 {
   "name": "@gaman/static",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Static Files HTTP integration for GamanJS framework",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

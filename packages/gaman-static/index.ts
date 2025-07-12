@@ -46,7 +46,7 @@ export interface StaticFileOptions {
 
   /**
    * Priority Integrations
-   * @default low
+   * @default very-high
    */
   priority?: Priority;
 }
@@ -57,7 +57,7 @@ export function staticGaman(options: StaticFileOptions = {}) {
 
   return defineIntegration({
     name: "static",
-    priority: options.priority || "low",
+    priority: options.priority || "very-high", // ! harus very-high, biar di jalain terlebih dahulu, biar bypass middleware lain
     async onRequest(_app, ctx) {
       try {
         // Resolve the file path

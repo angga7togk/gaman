@@ -380,6 +380,8 @@ export class GamanBase<A extends AppConfig> {
 
     if (result instanceof Response) {
       const r = new Response(result.body, {
+        status: result.status,
+        statusText: result.statusText,
         headers,
         context: ctx,
       });

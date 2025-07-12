@@ -1,7 +1,7 @@
 import http from "node:http";
 import querystring from "node:querystring";
 import type { Context, AppConfig, BlockConfig } from "./types";
-import { FormData, type FormDataEntryValue } from "./utils/form-data";
+import { FormData, type IFormDataEntryValue } from "./utils/form-data";
 import Busboy from "busboy"; // Import Busboy
 import { Cookie } from "./utils/cookie";
 import { Headers } from "./utils/headers";
@@ -120,15 +120,13 @@ function parseFormUrlEncoded(body: string): FormData {
   const result = new FormData();
   for (const [key, value] of Object.entries(data)) {
     if (Array.isArray(value)) {
-      const _values: FormDataEntryValue[] = value.map((v) => ({
-        isFile: false,
+      const _values: IFormDataEntryValue[] = value.map((v) => ({
         name: key,
         value: v as string, // Cast to string since querystring.parse returns string | string[]
       }));
       result.setAll(key, _values);
     } else {
       result.set(key, {
-        isFile: false,
         name: key,
         value: (value as string) || "",
       });
@@ -155,7 +153,6 @@ async function parseMultipartFormWithBusboy(
       fileStream.on("end", () => {
         const fileBuffer = Buffer.concat(fileChunks);
         formData.set(name, {
-          isFile: true,
           name: name,
           filename: filename,
           mimetype: mimeType,
@@ -168,7 +165,6 @@ async function parseMultipartFormWithBusboy(
 
     busboy.on("field", (name, val, info) => {
       formData.set(name, {
-        isFile: false,
         name,
         value: val,
       });

@@ -4,6 +4,7 @@ import type HttpError from "./error/HttpError";
 import type { RenderResponse, Response } from "./response";
 import { ClientRequest } from "http";
 import { Headers } from "./utils/headers";
+import { FormData } from "./utils/form-data";
 
 /* -------------------------------------------------------------------------- */
 /*                              Interface Global                              */
@@ -161,7 +162,7 @@ export interface Request {
   query: any;
   body: any;
   json: <T = any>() => Promise<T>;
-  formData: () => {};
+  formData: () => Promise<FormData>;
   ip: string;
   raw: any;
 }

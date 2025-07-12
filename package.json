@@ -15,7 +15,8 @@
     "build:cjs": "node build-cjs.js",
     "build:esm": "node build-esm.js",
     "build": "npm run clean  && npm run build:cjs && npm run build:esm && tsc",
-    "build:bun": "npm run clean && bun ./build/build.ts"
+    "build:bun": "npm run clean && bun ./build/build.ts",
+    "test": "npm run build:bun && bun --watch test/src/main"
   },
   "author": "angga7togk",
   "license": "ISC",

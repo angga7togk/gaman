@@ -1,17 +1,61 @@
-export interface FormDataEntryValue {
+/**
+ * * ini untuk schema buat inputan aja kek buat sistem gaman ngeset data form
+ * * contoh: form.set(key, {value}); biar enak
+ * * nanti ujung ujungnya tetep jadi class FormDataEntryValue
+ */
+export interface IFormDataEntryValue {
   filename?: string;
   mimetype?: string;
   name: string;
-  isFile: boolean;
   value: string | Blob;
+}
+
+/**
+ * * Data Real
+ */
+export class FormDataEntryValue implements IFormDataEntryValue {
+  constructor(
+    public name: string,
+    public value: string | Blob,
+    public filename?: string,
+    public mimetype?: string
+  ) {}
+  public getName(): string {
+    return this.name;
+  }
+  public isFile(): boolean {
+    return this.value instanceof Blob;
+  }
+
+  public getFilename(): string | undefined {
+    return this.filename;
+  }
+
+  public getMimetype(): string | undefined {
+    return this.mimetype;
+  }
+
+  public toString(): string {
+    return typeof this.value === "string" ? this.value : "[object File]";
+  }
+
+  public valueOf(): string {
+    return this.toString();
+  }
+
+  public asString(): string {
+    if (typeof this.value === "string") return this.value;
+    throw new Error("Not a string");
+  }
+
+  public asFile(): Blob {
+    if (this.value instanceof Blob) return this.value;
+    throw new Error("Not a file");
+  }
 }
 
 export class FormData {
   private fields: Map<string, FormDataEntryValue[]>;
-
-  constructor(defaultData: Map<string, FormDataEntryValue[]> = new Map()) {
-    this.fields = defaultData;
-  }
 
   delete(name: string): void {
     this.fields.delete(name);
@@ -30,20 +74,37 @@ export class FormData {
     return this.fields.has(name);
   }
 
-  set(name: string, value: FormDataEntryValue) {
+  set(name: string, value: IFormDataEntryValue) {
+    const _newValue = new FormDataEntryValue(
+      value.name,
+      value.value,
+      value.filename,
+      value.mimetype
+    );
     if (this.has(name)) {
       const values = this.fields.get(name)!;
-      this.fields.set(name, [...values, value]);
+      this.fields.set(name, [...values, _newValue]);
     }
-    this.fields.set(name, [value]);
+    this.fields.set(name, [_newValue]);
   }
 
-  setAll(name: string, values: FormDataEntryValue[]) {
+  setAll(name: string, values: IFormDataEntryValue[]) {
+    const _newValues: FormDataEntryValue[] = [];
+    for (const value of values) {
+      _newValues.push(
+        new FormDataEntryValue(
+          value.name,
+          value.value,
+          value.filename,
+          value.mimetype
+        )
+      );
+    }
     if (this.has(name)) {
       const _values = this.fields.get(name)!;
-      this.fields.set(name, [..._values, ...values]);
+      this.fields.set(name, [..._values, ..._newValues]);
     }
-    this.fields.set(name, values);
+    this.fields.set(name, _newValues);
   }
 
   entries(): IterableIterator<[string, FormDataEntryValue]> {

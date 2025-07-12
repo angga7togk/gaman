@@ -4,6 +4,5 @@ import gaman from "gaman";
 import mainBlock from "main.block";
 
 gaman.serv({
-  strict: true,
   blocks: [mainBlock, userBlock, contentBlock],
 });

@@ -55,7 +55,7 @@ export class FormDataEntryValue implements IFormDataEntryValue {
 }
 
 export class FormData {
-  private fields: Map<string, FormDataEntryValue[]>;
+  private fields: Map<string, FormDataEntryValue[]> = new Map();
 
   delete(name: string): void {
     this.fields.delete(name);

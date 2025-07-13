@@ -34,13 +34,16 @@ export default function ejs(ops: GamanEJSOptions = {}) {
   return defineIntegration({
     name: "ejs",
     priority: ops.priority || "normal",
-    async onRender(_app, _ctx, res) {
+    async onResponse(_app, _ctx, res) {
+      const renderData = res.renderData;
+      if(renderData == null) return res; // ! next() if renderData null
+
       const filePath = join(
         process.cwd(),
         viewPath || "src/views",
-        `${res.viewName}.ejs`
+        `${renderData.getName()}.ejs`
       );
-      const rendered = await _ejs.renderFile(filePath, res.viewData, ejsOps);
+      const rendered = await _ejs.renderFile(filePath, renderData.getData(), ejsOps);
       return Response.html(rendered, { status: 200 });
     },
   });

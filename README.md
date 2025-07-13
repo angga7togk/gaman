@@ -26,6 +26,7 @@
 | [gaman](https://github.com/7TogkID/gaman)      | v0.0.36       |
 | [create-gaman](packages/create-gaman)          | v0.0.1        |
 | [@gaman/ejs](packages/gaman-ejs)               | v0.0.12       |
+| [@gaman/nunjucks](packages/gaman-nunjucks)     | v0.0.1        |
 | [@gaman/static](packages/gaman-static)         | v0.0.6        |
 | [@gaman/cors](packages/gaman-cors)             | v0.0.2        |
 | [@gaman/basic-auth](packages/gaman-basic-auth) | v0.0.2        |
@@ -70,62 +71,62 @@ Here’s a quick example to get you started: <br>
 `src/main.ts`
 
 ```ts
-import mainBlock from "main.block";
-import gaman from "gaman";
+import mainBlock from 'main.block';
+import gaman from 'gaman';
 
 gaman.serv({
-  blocks: [mainBlock], // your blocks
-  server: {
-    port: 3431, // optional
-    host: "0.0.0.0", // optional
-  },
+	blocks: [mainBlock], // your blocks
+	server: {
+		port: 3431, // optional
+		host: '0.0.0.0', // optional
+	},
 });
 ```
 
 `src/main.block.ts`
 
 ```ts
-import { defineBlock, Response } from "gaman";
+import { defineBlock, Response } from 'gaman';
 
 export default defineBlock({
-  path: "/",
-  all: (ctx) => {
-    console.log("middleware ALL");
-  },
-  routes: {
-    "/": (ctx) => {
-      return Response.json({ message: "❤️ Welcome to GamanJS" });
-    },
-    "/article/*": (ctx) => {
-      ctx.locals.userName = "Angga7Togk"; // set data locals
-    },
-    "/article": {
-      POST: [
-        async (ctx) => {
-          const json = await ctx.json();
-          return Response.json(json /**return JSON */, { status: 200 });
-        },
-      ],
-      "/json": {
-        GET: (ctx) => {
-          const userName = ctx.locals.userName;
+	path: '/',
+	all: (ctx) => {
+		console.log('middleware ALL');
+	},
+	routes: {
+		'/': (ctx) => {
+			return Response.json({ message: '❤️ Welcome to GamanJS' });
+		},
+		'/article/*': (ctx) => {
+			ctx.locals.userName = 'Angga7Togk'; // set data locals
+		},
+		'/article': {
+			POST: [
+				async (ctx) => {
+					const json = await ctx.json();
+					return Response.json(json /**return JSON */, { status: 200 });
+				},
+			],
+			'/json': {
+				GET: (ctx) => {
+					const userName = ctx.locals.userName;
 
-          // return like Response.json()
-          return {
-            user_name_from_local: userName,
-          };
-        },
-      },
-      "/text": {
-        GET: (ctx) => {
-          const userName = ctx.locals.userName;
+					// return like Response.json()
+					return {
+						user_name_from_local: userName,
+					};
+				},
+			},
+			'/text': {
+				GET: (ctx) => {
+					const userName = ctx.locals.userName;
 
-          // return like Response.text()
-          return userName;
-        },
-      },
-    },
-  },
+					// return like Response.text()
+					return userName;
+				},
+			},
+		},
+	},
 });
 ```
 

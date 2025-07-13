@@ -1,11 +1,12 @@
-import contentBlock from "./content/content.block";
-import userBlock from "./user/user.block";
-import gaman from "gaman";
-import mainBlock from "main.block";
+
+import gaman from 'gaman';
+import mainBlock from 'main.block';
+import nunjucks from '@gaman/nunjucks';
 
 gaman.serv({
-  blocks: [mainBlock, userBlock, contentBlock],
-  server: {
-    port: 3030
-  }
+	blocks: [mainBlock],
+	integrations: [nunjucks()],
+	server: {
+		port: 3030,
+	},
 });

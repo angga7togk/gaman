@@ -1,19 +1,45 @@
 import http from "node:http";
 import querystring from "node:querystring";
-import type { Context, AppConfig, BlockConfig } from "./types";
+import type { Context, AppConfig } from "./types";
 import { FormData, type IFormDataEntryValue } from "./utils/form-data";
 import Busboy from "busboy"; // Import Busboy
-import { Cookie } from "./utils/cookie";
-import { Headers } from "./utils/headers";
-import { Response } from "./response";
+import { GamanHeaders } from "./headers";
+import { GamanCookies } from "./cookies";
+import { HTTP_REQUEST_SYMBOL, HTTP_RESPONSE_SYMBOL } from "./symbol";
 
 export async function createContext<A extends AppConfig>(
-  req: http.IncomingMessage
+  req: http.IncomingMessage,
+  res: http.ServerResponse
 ): Promise<Context<A>> {
   const urlString = req.url || "/";
   const method = req.method || "GET";
   const url = new URL(urlString, `http://${req.headers.host}`);
   const contentType = req.headers["content-type"] || "";
+  const headers = new GamanHeaders(req.headers);
+
+  /** FormData state */
+  let form: FormData = null;
+  const formData = async () => {
+    if (form !== null) {
+      return form;
+    }
+
+    if (
+      contentType.includes("application/x-www-form-urlencoded") &&
+      method !== "HEAD"
+    ) {
+      form = parseFormUrlEncoded(parsedBody.raw?.toString() || "{}");
+    } else if (
+      contentType.includes("multipart/form-data") &&
+      method !== "HEAD"
+    ) {
+      const formData = await parseMultipartFormWithBusboy(req);
+      form = formData;
+    } else {
+      form = new FormData();
+    }
+    return form;
+  };
 
   let parsedBody: {
     json?: any;
@@ -26,8 +52,6 @@ export async function createContext<A extends AppConfig>(
     parsedBody = parseRequestBody(bodyBuffer, contentType, method);
   }
 
-  const headers = new Headers(req.headers);
-  
   const gamanRequest = {
     method,
     url: urlString,
@@ -41,27 +65,11 @@ export async function createContext<A extends AppConfig>(
     json: async <T>() => {
       return parsedBody.json ? (parsedBody.json as T) : ({} as T);
     },
-    formData: async () => {
-      if (
-        contentType.includes("application/x-www-form-urlencoded") &&
-        method !== "HEAD"
-      ) {
-        return parseFormUrlEncoded(parsedBody.raw?.toString() || "{}");
-      } else if (
-        contentType.includes("multipart/form-data") &&
-        method !== "HEAD"
-      ) {
-        const formData = await parseMultipartFormWithBusboy(req);
-        return formData;
-      } else {
-        return new FormData();
-      }
-    },
+    formData,
     ip: req.socket.remoteAddress || "",
     raw: req,
   };
-
-  return {
+  const ctx = {
     locals: <A["Locals"]>{},
     env: <A["Env"]>{},
     request: gamanRequest,
@@ -71,9 +79,13 @@ export async function createContext<A extends AppConfig>(
     query: gamanRequest.query,
     header: gamanRequest.header,
     headers: gamanRequest.headers,
-    cookies: new Cookie(req.headers.cookie || ""),
+    cookies: new GamanCookies(gamanRequest),
     url,
+    input: async (name: string) => (await formData()).get(name)?.asString(),
+    [HTTP_REQUEST_SYMBOL]: req,
+    [HTTP_RESPONSE_SYMBOL]: res,
   };
+  return ctx;
 }
 
 async function getRequestBodyBuffer(

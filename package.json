@@ -1,6 +1,6 @@
 {
 	"name": "gaman",
-	"version": "0.0.36",
+	"version": "0.0.37",
 	"type": "module",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
@@ -20,6 +20,7 @@
 		"build": "npm run clean  && npm run build:cjs && npm run build:esm && tsc",
 		"build:bun": "npm run clean && bun ./build/build.ts",
 		"test": "npm run build:bun && bun --watch test/src/main",
+		"release": "npm run build:bun && npm publish",
 		"lint:src": "eslint src/ --ext .ts",
 		"lint:fix": "eslint src/ --ext .ts --fix"
 	},

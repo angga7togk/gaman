@@ -1,6 +1,6 @@
 {
   "name": "@gaman/ejs",
-  "version": "0.0.12",
+  "version": "0.0.14",
   "description": "EJS integration for GamanJS framework",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "gaman": "^0.0.34",
+    "gaman": "^0.0.38",
     "typescript": "^5"
   },
   "peerDependencies": {

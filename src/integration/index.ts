@@ -1,7 +1,7 @@
-import { AppConfig, IntegrationInterface } from "../types";
+import { AppConfig, IIntegration } from "../types";
 
 export function defineIntegration<A extends AppConfig>(
-  integration: IntegrationInterface<A>
-): IntegrationInterface<A> {
+  integration: IIntegration<A>
+): IIntegration<A> {
   return integration;
 }

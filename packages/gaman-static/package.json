@@ -1,6 +1,6 @@
 {
   "name": "@gaman/static",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "description": "Static Files HTTP integration for GamanJS framework",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "gaman": "^0.0.34",
+    "gaman": "^0.0.38",
     "typescript": "^5"
   }
 }

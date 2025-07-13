@@ -5,7 +5,7 @@ import type {
 	NextResponse,
 	RoutesDefinition,
 	AppOptions,
-	IntegrationInterface,
+	IIntegration,
 } from './types';
 import http from 'node:http';
 import { Log } from './utils/logger';
@@ -26,7 +26,7 @@ import { IGNORED_LOG_FOR_PATH_REGEX } from './constant';
 export class GamanBase<A extends AppConfig> {
 	#blocks: IBlock<A>[] = [];
 	#websocket: GamanWebSocket<A>;
-	#integrations: Array<IntegrationInterface<A>> = [];
+	#integrations: Array<IIntegration<A>> = [];
 
 	private strict = false;
 
@@ -119,7 +119,7 @@ export class GamanBase<A extends AppConfig> {
 		const startTime = performance.now();
 		const ctx = await createContext<A>(req, res);
 		try {
-			const blocksAndIntegrations = sortArrayByPriority<IBlock<A> | IntegrationInterface<A>>(
+			const blocksAndIntegrations = sortArrayByPriority<IBlock<A> | IIntegration<A>>(
 				[...this.#blocks, ...this.#integrations],
 				'priority',
 				'asc', //  1, 2, 3, 4, 5 // kalau desc: 5, 4, 3, 2, 1
@@ -188,7 +188,7 @@ export class GamanBase<A extends AppConfig> {
 						throw new HttpError(403, error.message);
 					}
 				} else if ('onRequest' in blockOrIntegration) {
-					const integration = blockOrIntegration as IntegrationInterface<A>;
+					const integration = blockOrIntegration as IIntegration<A>;
 					const result = await integration.onRequest?.(this.options, ctx);
 					if (result) {
 						return await this.handleResponse(result, ctx);
@@ -362,7 +362,7 @@ export class GamanBase<A extends AppConfig> {
 		 * * proccess integrations first
 		 */
 		if (this.#integrations) {
-			const integrations = sortArrayByPriority<IntegrationInterface<A>>(
+			const integrations = sortArrayByPriority<IIntegration<A>>(
 				this.#integrations,
 				'priority',
 				'asc',

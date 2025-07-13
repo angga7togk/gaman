@@ -1,6 +1,6 @@
 {
 	"name": "@gaman/nunjucks",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Nunjucks integration for GamanJS framework",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
@@ -30,8 +30,7 @@
 	},
 	"devDependencies": {
 		"@types/bun": "latest",
-		"@types/nunjucks": "^3.2.6",
-		"gaman": "^0.0.34",
+		"gaman": "^0.0.38",
 		"typescript": "^5"
 	},
 	"peerDependencies": {

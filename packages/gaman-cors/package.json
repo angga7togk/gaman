@@ -1,6 +1,6 @@
 {
   "name": "@gaman/cors",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CORS Middleware for GamanJS framework",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "gaman": "^0.0.23",
+    "gaman": "^0.0.38",
     "typescript": "^5"
   }
 }

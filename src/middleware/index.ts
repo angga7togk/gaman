@@ -1,4 +1,4 @@
-import type { AppConfig, Handler, NextResponse } from "../types";
+import type { AppConfig, Handler } from "../types";
 
 export function defineMiddleware<A extends AppConfig = AppConfig>(
   handler: Handler<A>

@@ -10,9 +10,10 @@ import { Response } from "../response";
 /*                              Interface Global                              */
 /* -------------------------------------------------------------------------- */
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Gaman {
-    interface Locals {}
-    interface Env {}
+    type Locals = object
+    type Env = object
     type Response = import("../response").Response;
     const Response: typeof import("../response").Response;
   }

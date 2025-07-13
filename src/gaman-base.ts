@@ -21,20 +21,15 @@ import { Readable } from "node:stream";
 import path from "node:path";
 import { HTTP_RESPONSE_SYMBOL } from "./symbol";
 import { GamanCookies } from "./cookies";
-import EventEmitter from "node:events";
-import { GamanHeaders } from "./headers";
 
 export class GamanBase<A extends AppConfig> {
   #blocks: IBlock<A>[] = [];
   #websocket: GamanWebSocket<A>;
   #integrations: Array<IntegrationInterface<A>> = [];
-  #event: EventEmitter;
 
   private strict = false;
 
   constructor(private options: AppOptions<A>) {
-    this.#event = new EventEmitter();
-
     if (options.strict) {
       this.strict = options.strict;
     }
@@ -282,7 +277,7 @@ export class GamanBase<A extends AppConfig> {
       });
 
       // * Jika ada BINTANG (*) berarti middleware
-      let isMiddleware = fullPath.includes("*");
+      const isMiddleware = fullPath.includes("*");
 
       /**
        * * Jika dia middleware maka pake fungsi check middleware

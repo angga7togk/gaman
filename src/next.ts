@@ -1,5 +1,5 @@
-import type { AppConfig, NextResponse } from "./types";
+import type { NextResponse } from './types';
 
 export function next(): NextResponse {
-  return undefined;
+	return undefined;
 }

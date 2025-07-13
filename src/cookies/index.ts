@@ -73,7 +73,7 @@ export class GamanCookies implements GamanCookiesInterface {
     options: GamanCookieGetOptions | undefined = undefined
   ): GamanCookie | undefined {
     if (this.#outgoing?.has(key)) {
-      let [serializedValue, , isSetValue] = this.#outgoing.get(key)!;
+      const [serializedValue, , isSetValue] = this.#outgoing.get(key)!;
       if (isSetValue) {
         return new GamanCookie(serializedValue);
       } else {
@@ -94,7 +94,7 @@ export class GamanCookies implements GamanCookiesInterface {
 
   has(key: string): boolean {
     if (this.#outgoing?.has(key)) {
-      let [, , isSetValue] = this.#outgoing.get(key)!;
+      const [, , isSetValue] = this.#outgoing.get(key)!;
       return isSetValue;
     }
     const values = this.#ensureParsed();
@@ -116,7 +116,7 @@ export class GamanCookies implements GamanCookiesInterface {
     let serializedValue: string;
     if (typeof value === "string") {
       serializedValue = value;
-      let toStringValue = value.toString();
+      const toStringValue = value.toString();
       if (toStringValue === Object.prototype.toString.call(value)) {
         serializedValue = JSON.stringify(value);
       } else {
@@ -148,9 +148,13 @@ export class GamanCookies implements GamanCookiesInterface {
 
   delete(key: string, options?: GamanCookieDeleteOptions): void {
     const {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       maxAge: _ignoredMaxAge,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       expires: _ignoredExpires,
       ...sanitizedOptions
     } = options || {};

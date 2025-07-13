@@ -3,7 +3,7 @@
  * GamanJS integration for serving static files.
  */
 
-import { defineIntegration, Priority, Response } from "gaman";
+import { defineIntegration, Log, Priority, Response } from "gaman";
 import { createReadStream, promises as fsPromises } from "fs";
 import { join, extname } from "path";
 
@@ -59,6 +59,8 @@ export function staticGaman(options: StaticFileOptions = {}) {
     name: "static",
     priority: options.priority || "very-high", // ! harus very-high, biar di jalain terlebih dahulu, biar bypass middleware lain
     async onRequest(_app, ctx) {
+      Log.setRoute(""); // ! cegah kirim log request 
+      Log.setStatus(null);
       try {
         // Resolve the file path
         const filePath = join(process.cwd(), staticPath, ctx.pathname);

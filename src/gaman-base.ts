@@ -419,6 +419,7 @@ export class GamanBase<A extends AppConfig> {
     res.statusCode = response.status;
     res.statusMessage = response.statusText;
     res.setHeaders(response.headers.toMap());
+    Log.setStatus(response.status);
 
     if (response.body instanceof Readable) {
       return response.body.pipe(res);

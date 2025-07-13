@@ -23,10 +23,10 @@
 
 | Package                                        | Release Notes |
 | ---------------------------------------------- | ------------- |
-| [gaman](https://github.com/7TogkID/gaman)      | v0.0.30       |
+| [gaman](https://github.com/7TogkID/gaman)      | v0.0.35       |
 | [create-gaman](packages/create-gaman)          | v0.0.1        |
-| [@gaman/ejs](packages/gaman-ejs)               | v0.0.11       |
-| [@gaman/static](packages/gaman-static)         | v0.0.4        |
+| [@gaman/ejs](packages/gaman-ejs)               | v0.0.12       |
+| [@gaman/static](packages/gaman-static)         | v0.0.5        |
 | [@gaman/cors](packages/gaman-cors)             | v0.0.2        |
 | [@gaman/basic-auth](packages/gaman-basic-auth) | v0.0.2        |
 | [@gaman/cli](packages/gaman-cli)               | v0.0.8        |

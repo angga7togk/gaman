@@ -1,6 +1,6 @@
 {
 	"name": "gaman",
-	"version": "0.0.33",
+	"version": "0.0.35",
 	"type": "module",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
@@ -24,7 +24,7 @@
 		"lint:fix": "eslint src/ --ext .ts --fix"
 	},
 	"author": "angga7togk",
-	"license": "ISC",
+	"license": "MIT",
 	"repository": {
 		"url": "https://github.com/7TogkID/gaman"
 	},
@@ -46,6 +46,7 @@
 		"@types/ws": "^8.18.1",
 		"arg": "^5.0.2",
 		"busboy": "^1.6.0",
+		"dotenv": "^17.2.0",
 		"ejs": "^3.1.10",
 		"eslint": "^9.31.0",
 		"gaman": "^0.0.23",
@@ -58,8 +59,5 @@
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.36.0",
 		"ws": "^8.18.2"
-	},
-	"dependencies": {
-		"dotenv": "^17.2.0"
 	}
 }

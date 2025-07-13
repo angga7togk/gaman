@@ -1,5 +1,7 @@
-import { AppConfig, RoutesDefinition } from "../types";
+import { AppConfig, Handler, Router } from '../types';
 
-export function defineTree<A extends AppConfig>(routes: RoutesDefinition<A>): RoutesDefinition<A> {
-  return routes;
+export function defineTree<A extends AppConfig>(
+	routes: Router<A> | Handler<A> | Handler<A>[],
+): Router<A> | Handler<A> | Handler<A>[] {
+	return routes;
 }

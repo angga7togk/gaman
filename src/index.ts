@@ -1,6 +1,7 @@
 export * from "./types";
 export * from "./gaman-base";
 export * from "./context";
+export * from "./cookies";
 export * from "./next";
 export * from "./response";
 export * from "./web-socket";
@@ -9,13 +10,16 @@ export * from "./middleware";
 export * from "./error/HttpError";
 export * from "./block";
 export * from "./utils/logger";
-export * from "./utils/cookie";
 export * from "./utils/color";
 export * from "./utils/form-data";
-export * from "./utils/headers";
+export * from "./headers";
 export * from "./integration";
 
+
 import { serv } from "./gaman";
+import dotenv from "dotenv";
+dotenv.config();
+
 
 export default {
   serv,

@@ -5,4 +5,7 @@ import mainBlock from "main.block";
 
 gaman.serv({
   blocks: [mainBlock, userBlock, contentBlock],
+  server: {
+    port: 3030
+  }
 });

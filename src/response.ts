@@ -1,156 +1,133 @@
-import type { AppConfig, Context } from "./types";
+import { GamanHeaders } from "./headers";
 
-export interface ResponseOptions<A extends AppConfig> {
-  status?: number;
-  statusText?: string;
-  headers?: Record<string, string>;
-  context?: Context<A>;
+export class RenderResponse {
+  #viewName: string;
+  #viewData: Record<string, any>;
+  #init: IResponseOptions;
+
+  constructor(
+    viewName: string,
+    viewData: Record<string, any> = {},
+    init: IResponseOptions = { status: 200 }
+  ) {
+    this.#viewName = viewName;
+    this.#viewData = viewData;
+    this.#init = init;
+  }
+
+  getName() {
+    return this.#viewName;
+  }
+
+  getData() {
+    return this.#viewData;
+  }
+
+  getOptions() {
+    return this.#init;
+  }
 }
 
-export type RenderResponse<A extends AppConfig> = {
-  viewName: string;
-  viewData: Record<string, any>;
-  responseOptions?: ResponseOptions<A>;
-};
+const responseRenderSymbol = Symbol.for("gaman.responseRender");
 
-export class Response<A extends AppConfig> {
+export interface IResponseOptions {
+  status?: number;
+  statusText?: string;
+  headers?: Record<string, string | string[]>;
+}
+
+export class Response {
+  [responseRenderSymbol]: RenderResponse | null;
+
+  public headers: GamanHeaders;
   public status: number;
   public statusText: string;
-  public headers: Record<string, string>;
-  public body: any;
-  public context?: Context<A>;
-
-  constructor(body?: any, options?: ResponseOptions<A>) {
-    this.status = options?.status || 200;
-    this.statusText = options?.statusText || "";
-    this.headers = options?.headers || {};
-    this.body = body;
-    if (options?.context) {
-      this.context = options.context;
-      const serialized = options.context.cookies.serializeAll();
-      this.headers["Set-Cookie"] = serialized;
+  constructor(
+    public body?: any,
+    options: IResponseOptions = {
+      status: 404,
+      statusText: "",
     }
+  ) {
+    this[responseRenderSymbol] = null;
+    this.body = body;
+    this.headers = new GamanHeaders(options.headers || {});
+    this.status = options.status;
+    this.statusText = options.statusText;
   }
 
-  public getOptions(): ResponseOptions<A> {
-    return {
-      context: this.context,
-      headers: this.headers,
-      status: this.status,
-      statusText: this.statusText,
-    };
-  }
-
-  public static json<A extends AppConfig>(
-    body: any,
-    options?: ResponseOptions<A>
-  ): Response<A> {
-    const defaultOptions: ResponseOptions<A> = {
+  static json(data: any, init: IResponseOptions = {}): Response {
+    return new Response(JSON.stringify(data, null, 2), {
+      ...init,
       headers: {
         "Content-Type": "application/json",
+        ...(init.headers || {}),
       },
-    };
-    const expandedOptions = this.expandOptions(defaultOptions, options);
-    return new Response(JSON.stringify(body), expandedOptions);
+    });
   }
 
-  public static text<A extends AppConfig>(
-    body: string,
-    options?: ResponseOptions<A>
-  ): Response<A> {
-    const defaultOptions: ResponseOptions<A> = {
+  static text(message: string, init: IResponseOptions = {}): Response {
+    return new Response(message, {
+      ...init,
       headers: {
         "Content-Type": "text/plain",
+        ...(init.headers || {}),
       },
-    };
-    const expandedOptions = this.expandOptions(defaultOptions, options);
-    return new Response(body, expandedOptions);
+    });
   }
 
-  public static html<A extends AppConfig>(
-    body: string,
-    options?: ResponseOptions<A>
-  ): Response<A> {
-    const defaultOptions: ResponseOptions<A> = {
+  static html(body: string, init: IResponseOptions = {}): Response {
+    return new Response(body, {
+      ...init,
       headers: {
         "Content-Type": "text/html",
+        ...(init.headers || {}),
       },
-    };
-    const expandedOptions = this.expandOptions(defaultOptions, options);
-    return new Response(body, expandedOptions);
+    });
   }
 
-  public static buffer<A extends AppConfig>(
-    buffer: Buffer,
-    contentType: string,
-    options?: ResponseOptions<A>
-  ): Response<A> {
-    const defaultOptions: ResponseOptions<A> = {
+  static render(
+    viewName: string,
+    viewData: Record<string, any> = {},
+    init: IResponseOptions = { status: 200 }
+  ): Response {
+    const res = new Response(null, {
+      ...init,
       headers: {
-        "Content-Type": contentType,
-        "Content-Length": buffer.length.toString(),
+        "Content-Type": "text/html",
+        ...(init.headers || {}),
       },
-    };
-    const expandedOptions = this.expandOptions(defaultOptions, options);
-    return new Response(buffer, expandedOptions);
+    });
+    res[responseRenderSymbol] = new RenderResponse(viewName, viewData, init);
+    return res;
   }
 
-  public static redirect<A extends AppConfig>(
-    location: string,
-    status: number = 302
-  ): Response<A> {
-    const defaultOptions: ResponseOptions<A> = {
-      status,
+  static stream(
+    readableStream: NodeJS.ReadableStream,
+    init?: IResponseOptions
+  ): Response {
+    return new Response(readableStream, {
+      ...init,
+      headers: {
+        "Content-Type": "application/octet-stream",
+        ...(init.headers || {}),
+      },
+    });
+  }
+
+  static redirect(location: string, statusNumber: number = 302): Response {
+    return new Response(null, {
+      status: statusNumber,
       headers: {
         Location: location,
       },
-    };
-    const expandedOptions = this.expandOptions(defaultOptions, {});
-    return new Response("", expandedOptions);
+    });
   }
 
-  public static render<A extends AppConfig>(
-    viewName: string,
-    viewData: Record<string, any> = {},
-    responseOptions?: ResponseOptions<A>
-  ): RenderResponse<A> {
-    return {
-      viewName,
-      viewData,
-      responseOptions,
-    };
-  }
-
-  public static stream<A extends AppConfig>(
-  readableStream: NodeJS.ReadableStream,
-  options?: ResponseOptions<A>
-): Response<A> {
-  const defaultOptions: ResponseOptions<A> = {
-    headers: {
-      "Content-Type": "application/octet-stream",
-    },
-  };
-  const expandedOptions = this.expandOptions(defaultOptions, options);
-
-  // Jangan ubah body-nya; gunakan langsung readableStream
-  const response = new Response(null, expandedOptions);
-  response.body = readableStream;
-  return response;
-}
-
-
-  private static expandOptions<A extends AppConfig>(
-    defaults: ResponseOptions<A>,
-    options?: ResponseOptions<A>
-  ): ResponseOptions<A> {
-    const expandedOptions: ResponseOptions<A> = {
-      ...defaults,
-      ...options,
-      headers: {
-        ...defaults.headers,
-        ...options?.headers,
-      },
-    };
-    return expandedOptions;
+  /**
+   * Akses helper untuk render view
+   */
+  get renderData(): RenderResponse | null {
+    return this[responseRenderSymbol];
   }
 }

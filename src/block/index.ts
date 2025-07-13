@@ -1,7 +1,7 @@
-import type { AppConfig, BlockInterface } from "../types";
+import type { AppConfig, IBlock } from "../types";
 
 export function defineBlock<A extends AppConfig>(
-  block: BlockInterface<A>
-): BlockInterface<A> {
+  block: IBlock<A>
+): IBlock<A> {
   return block;
 }

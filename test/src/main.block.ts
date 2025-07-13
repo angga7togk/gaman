@@ -5,7 +5,10 @@ export default defineBlock({
   path: "/",
   routes: {
     "/": async (ctx) => {
-      return Response.redirect("/login");
+      const gamertag = await ctx.input('gamertag');
+      return {
+        gamertag
+      }
     },
     "/login": () => "anjay",
   },

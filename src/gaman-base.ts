@@ -1,5 +1,5 @@
 import type {
-  BlockInterface,
+  IBlock,
   Context,
   AppConfig,
   NextResponse,
@@ -11,7 +11,7 @@ import http from "node:http";
 import { Log } from "./utils/logger";
 import { createContext } from "./context";
 import { formatPath, isHtmlString } from "./utils/utils";
-import { RenderResponse, Response } from "./response";
+import { Response } from "./response";
 import { sortArrayByPriority } from "./utils/priority";
 import { performance } from "perf_hooks";
 import { Color } from "./utils/color";
@@ -19,24 +19,31 @@ import HttpError from "./error/HttpError";
 import { GamanWebSocket } from "./web-socket";
 import { Readable } from "node:stream";
 import path from "node:path";
+import { HTTP_RESPONSE_SYMBOL } from "./symbol";
+import { GamanCookies } from "./cookies";
+import EventEmitter from "node:events";
+import { GamanHeaders } from "./headers";
 
 export class GamanBase<A extends AppConfig> {
-  private blocks: BlockInterface<A>[] = [];
-  private websocket: GamanWebSocket<A>;
-  private integrations: Array<IntegrationInterface<A>> = [];
+  #blocks: IBlock<A>[] = [];
+  #websocket: GamanWebSocket<A>;
+  #integrations: Array<IntegrationInterface<A>> = [];
+  #event: EventEmitter;
 
   private strict = false;
 
   constructor(private options: AppOptions<A>) {
+    this.#event = new EventEmitter();
+
     if (options.strict) {
       this.strict = options.strict;
     }
-    this.websocket = new GamanWebSocket(this);
+    this.#websocket = new GamanWebSocket(this);
 
     // Initialize integrations
     if (options.integrations) {
       for (const integration of options.integrations) {
-        this.integrations.push(integration);
+        this.#integrations.push(integration);
         integration.onLoad?.(this.options);
       }
     }
@@ -48,12 +55,12 @@ export class GamanBase<A extends AppConfig> {
     if (options.blocks) {
       for (const block of options.blocks) {
         const blockPath = block.path || "/";
-        if (this.blocks.some((b) => b.path === blockPath)) {
+        if (this.#blocks.some((b) => b.path === blockPath)) {
           throw new Error(`Block '${blockPath}' already exists!`);
         }
 
         if (block.websocket) {
-          this.websocket.registerWebSocketServer(block);
+          this.#websocket.registerWebSocketServer(block);
         }
 
         this.registerBlock({
@@ -64,17 +71,17 @@ export class GamanBase<A extends AppConfig> {
         // Initialize block childrens
         function initChilderns(
           basePath: string,
-          childrens: Array<BlockInterface<A>>,
+          childrens: Array<IBlock<A>>,
           app: GamanBase<A>
         ) {
           for (const blockChild of childrens) {
             const childPath = path.join(basePath, blockChild.path);
-            if (app.blocks.some((b) => b.path === childPath)) {
+            if (app.#blocks.some((b) => b.path === childPath)) {
               throw new Error(`Block '${childPath}' already exists!`);
             }
 
             if (blockChild.websocket) {
-              app.websocket.registerWebSocketServer(blockChild);
+              app.#websocket.registerWebSocketServer(blockChild);
             }
 
             app.registerBlock({
@@ -97,21 +104,21 @@ export class GamanBase<A extends AppConfig> {
     }
   }
 
-  getBlock(blockPath: string): BlockInterface<A> | undefined {
+  getBlock(blockPath: string): IBlock<A> | undefined {
     const path = formatPath(blockPath, this.strict);
-    const block: BlockInterface<A> | undefined = this.blocks.find(
+    const block: IBlock<A> | undefined = this.#blocks.find(
       (b) => formatPath(b.path, this.strict) === path
     );
     return block;
   }
 
-  registerBlock(block: BlockInterface<A>) {
+  registerBlock(block: IBlock<A>) {
     // * Kasih "/" di belakang nya kalau strict
 
     const _path = `${formatPath(block.path, this.strict)}${
       this.strict ? "/" : ""
     }`;
-    this.blocks.push({
+    this.#blocks.push({
       ...block,
       path: _path,
     });
@@ -123,18 +130,18 @@ export class GamanBase<A extends AppConfig> {
   ) {
     Log.setRoute(req.url || "/");
     const startTime = performance.now();
-    const ctx = await createContext<A>(req);
+    const ctx = await createContext<A>(req, res);
     try {
       const blocksAndIntegrations = sortArrayByPriority<
-        BlockInterface<A> | IntegrationInterface<A>
+        IBlock<A> | IntegrationInterface<A>
       >(
-        [...this.blocks, ...this.integrations],
+        [...this.#blocks, ...this.#integrations],
         "priority",
         "asc" //  1, 2, 3, 4, 5 // kalau desc: 5, 4, 3, 2, 1
       );
       for await (const blockOrIntegration of blocksAndIntegrations) {
         if ("routes" in blockOrIntegration) {
-          const block = blockOrIntegration as BlockInterface<A>;
+          const block = blockOrIntegration as IBlock<A>;
           try {
             /**
              * * Jika path depannya aja udah gak sama berarti gausah di lanjutin :V
@@ -154,7 +161,7 @@ export class GamanBase<A extends AppConfig> {
                  * * Kalau tidak di kurung maka, dia bakal jalanin middleware doang routesnya ga ke proses
                  */
                 if (result) {
-                  return await this.handleResponse(result, ctx, res);
+                  return await this.handleResponse(result, ctx);
                 }
               }
             }
@@ -170,7 +177,7 @@ export class GamanBase<A extends AppConfig> {
                */
               if (result) {
                 // * Set Status Log
-                return await this.handleResponse(result, ctx, res);
+                return await this.handleResponse(result, ctx);
               }
             }
 
@@ -186,7 +193,7 @@ export class GamanBase<A extends AppConfig> {
              * * Karna disini adalah respon akhir dari handle routes!
              */
             if (result) {
-              return await this.handleResponse(result, ctx, res);
+              return await this.handleResponse(result, ctx);
             }
           } catch (error: any) {
             if (block.error) {
@@ -196,7 +203,7 @@ export class GamanBase<A extends AppConfig> {
                 ctx
               );
               if (result) {
-                return await this.handleResponse(result, ctx, res);
+                return await this.handleResponse(result, ctx);
               }
             }
             Log.error(error);
@@ -206,20 +213,20 @@ export class GamanBase<A extends AppConfig> {
           const integration = blockOrIntegration as IntegrationInterface<A>;
           const result = await integration.onRequest?.(this.options, ctx);
           if (result) {
-            return await this.handleResponse(result, ctx, res);
+            return await this.handleResponse(result, ctx);
           }
         }
       }
 
       // not found
-      return await this.handleResponse(undefined, ctx, res);
+      return await this.handleResponse(undefined, ctx);
     } catch (error: any) {
       // ! Handler Error keseluruhan system
 
       if (this.options.error) {
         const result = await this.options.error(error, ctx);
         if (result) {
-          return await this.handleResponse(result, ctx, res);
+          return await this.handleResponse(result, ctx);
         }
       }
       Log.error(error.message);
@@ -227,11 +234,18 @@ export class GamanBase<A extends AppConfig> {
       res.end("Internal Server Error");
     } finally {
       const endTime = performance.now();
-      Log.log(
-        `Request processed in ${Color.fg.green}(${(endTime - startTime).toFixed(
-          1
-        )}ms)${Color.reset}`
-      );
+
+      /**
+       * * kalau route dan status = null di tengah jalan
+       * * berarti gausah di kasih log
+       */
+      if (Log.response.route && Log.response.status) {
+        Log.log(
+          `Request processed in ${Color.fg.green}(${(
+            endTime - startTime
+          ).toFixed(1)}ms)${Color.reset}`
+        );
+      }
       Log.setRoute("");
       Log.setStatus(null);
     }
@@ -241,7 +255,7 @@ export class GamanBase<A extends AppConfig> {
     routes: RoutesDefinition<A>,
     ctx: Context<A>,
     basePath: string = "/"
-  ): Promise<NextResponse<A>> {
+  ): Promise<NextResponse> {
     for await (const [path, handler] of Object.entries(routes)) {
       /**
        * * format path biar bisa nested path
@@ -335,85 +349,86 @@ export class GamanBase<A extends AppConfig> {
   }
 
   private async handleResponse(
-    result:
-      | string
-      | object
-      | any[]
-      | Promise<Response<A> | RenderResponse<A>>
-      | Response<A>
-      | RenderResponse<A>,
-    ctx: Context<A>,
-    res: http.ServerResponse
+    result: string | object | any[] | Response,
+    ctx: Context<A>
   ) {
-    if (res.finished) return;
+    const res: http.ServerResponse = ctx[HTTP_RESPONSE_SYMBOL];
+    if (res.writableEnded) return; // * ignore process if response finished
 
-    if (this.integrations) {
+    const isResponse = (value: unknown): value is Response => {
+      return value instanceof Response;
+    };
+
+    /**
+     * * substitue result
+     * @default response 404
+     */
+    let response: Response = new Response();
+
+    if (isResponse(result)) {
+      response = result;
+    } else {
+      /**
+       * * intialize response without class Response
+       * @example return {message: "OK"}; or return "OK!";
+       */
+      if (typeof result === "string") {
+        if (isHtmlString(result)) {
+          response = Response.html(result, {
+            status: 200,
+          });
+        } else {
+          response = Response.text(result, {
+            status: 200,
+          });
+        }
+      } else if (result) {
+        response = Response.json(result, {
+          status: 200,
+        });
+      }
+    }
+
+    /**
+     * * proccess integrations first
+     */
+    if (this.#integrations) {
       const integrations = sortArrayByPriority<IntegrationInterface<A>>(
-        this.integrations,
+        this.#integrations,
         "priority",
         "asc"
       );
 
       for (const integration of integrations) {
-        let _result;
-        if (
-          typeof result === "object" &&
-          "viewName" in result &&
-          integration.onRender
-        ) {
-          _result = await integration.onRender(this.options, ctx, result);
-        } else if (integration.onResponse) {
-          _result = await integration.onResponse(this.options, ctx, result);
-        }
-
-        if (_result) {
-          result = _result;
+        const integrationResponse = await integration.onResponse(
+          this.options,
+          ctx,
+          response
+        );
+        if (integrationResponse) {
+          response = integrationResponse;
           break;
         }
       }
     }
 
-    const headers = {
-      ...(result instanceof Response ? result.headers || {} : {}),
-      ...ctx.headers.__getSetterData(),
-    };
-
-    if (result instanceof Response) {
-      const r = new Response(result.body, {
-        status: result.status,
-        statusText: result.statusText,
-        headers,
-        context: ctx,
-      });
-
-      Log.setStatus(r.status);
-
-      if (result.body instanceof Readable) {
-        // Streaming response
-        res.writeHead(result.status, result.statusText, result.headers);
-        return result.body.pipe(res);
-      }
-
-      // Normal response
-      res.writeHead(r.status, r.statusText, r.headers);
-      return res.end(r.body);
+    /**
+     * set cookies
+     */
+    const cookieHeaders = Array.from(GamanCookies.consume(ctx.cookies));
+    if (cookieHeaders.length > 0) {
+      response.headers.set("Set-Cookie", cookieHeaders);
     }
 
-    let r: Response<A> | undefined;
+    // * initialize http response
+    res.statusCode = response.status;
+    res.statusMessage = response.statusText;
+    res.setHeaders(response.headers.toMap());
 
-    if (typeof result === "string") {
-      if (isHtmlString(result)) {
-        r = Response.html(result, { status: 200, context: ctx, headers });
-      } else {
-        r = Response.text(result, { status: 200, context: ctx, headers });
-      }
-    } else if (result) {
-      r = Response.json(result, { status: 200, context: ctx, headers });
+    if (response.body instanceof Readable) {
+      return response.body.pipe(res);
     }
-
-    Log.setStatus(r?.status || 404);
-    res.writeHead(r?.status || 404, r?.statusText || "", r?.headers || {});
-    return res.end(r?.body || "404 Not Found");
+    return res.end(response.body);
   }
 
   listen() {
@@ -423,7 +438,7 @@ export class GamanBase<A extends AppConfig> {
       const urlString = request.url || "/";
       const { pathname } = new URL(urlString, `http://${request.headers.host}`);
 
-      const wss = this.websocket.getWebSocketServer(pathname);
+      const wss = this.#websocket.getWebSocketServer(pathname);
       if (wss) {
         wss.handleUpgrade(request, socket, head, function done(ws) {
           wss.emit("connection", ws, request);

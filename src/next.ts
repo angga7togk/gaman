@@ -1,5 +1,5 @@
 import type { AppConfig, NextResponse } from "./types";
 
-export function next<A extends AppConfig>(): NextResponse<A> {
+export function next(): NextResponse {
   return undefined;
 }

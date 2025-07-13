@@ -45,12 +45,12 @@ export class FormDataEntryValue implements IFormDataEntryValue {
 
   public asString(): string {
     if (typeof this.value === "string") return this.value;
-    throw new Error("Not a string");
+    return null;
   }
 
   public asFile(): Blob {
     if (this.value instanceof Blob) return this.value;
-    throw new Error("Not a file");
+    return null;
   }
 }
 

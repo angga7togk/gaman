@@ -1,7 +1,7 @@
 import type { GamanBase } from "./gaman-base";
 import type {
   AppConfig,
-  BlockInterface,
+  IBlock,
   WebSocketContext,
 } from "./types";
 import { WebSocketServer } from "ws";
@@ -9,17 +9,17 @@ import { formatPath } from "./utils/utils";
 
 export class GamanWebSocket<A extends AppConfig> {
   // * <path, WebSocketServer>
-  private wss: { [path: string]: WebSocketServer } = {};
+  #wss: { [path: string]: WebSocketServer } = {};
 
   constructor(private app: GamanBase<A>) {}
 
   getWebSocketServer(path: string): WebSocketServer | undefined {
-    return this.wss[path];
+    return this.#wss[path];
   }
 
-  registerWebSocketServer(block: BlockInterface<A>) {
+  registerWebSocketServer(block: IBlock<A>) {
     const path = formatPath(block.path || "/");
-    if (this.wss[path]) {
+    if (this.#wss[path]) {
       throw new Error(`WebSocketServer with path ${path} already exists!`);
     }
     const wss = new WebSocketServer({ noServer: true });
@@ -39,6 +39,6 @@ export class GamanWebSocket<A extends AppConfig> {
       });
     }
 
-    this.wss[path] = wss;
+    this.#wss[path] = wss;
   }
 }

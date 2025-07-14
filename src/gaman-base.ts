@@ -217,7 +217,11 @@ export class GamanBase<A extends AppConfig> {
 			 * * kalau route dan status = null di tengah jalan
 			 * * berarti gausah di kasih log
 			 */
-			if (Log.response.route && Log.response.status && !IGNORED_LOG_FOR_PATH_REGEX.test(Log.response.route)) {
+			if (
+				Log.response.route &&
+				Log.response.status &&
+				!IGNORED_LOG_FOR_PATH_REGEX.test(Log.response.route)
+			) {
 				Log.log(
 					`Request processed in ${Color.fg.green}(${(endTime - startTime).toFixed(
 						1,
@@ -332,7 +336,7 @@ export class GamanBase<A extends AppConfig> {
 		 * * substitue result
 		 * @default response 404
 		 */
-		let response: Response = new Response();
+		let response: Response = new Response(null, { status: 404 });
 
 		if (isResponse(result)) {
 			response = result;

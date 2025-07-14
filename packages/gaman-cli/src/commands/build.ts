@@ -26,7 +26,7 @@ await esbuild.build({
   format: "esm",
   platform: "node",
   target: "node18",
-  tsconfig: "./tsconfig.json",
+  // tsconfig: "./tsconfig.json",
   minify: true,
   sourcemap: false,
   legalComments: "none",

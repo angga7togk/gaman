@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/7TogkID/gaman">
+  <a href="https://gaman.7togk.id">
     <img src="https://github.com/7TogkID/gaman/blob/main/.github/images/gaman.png?raw=true" width="25%">
   </a>
 </p>
@@ -34,8 +34,8 @@
 
 ## 🚀 Get Started
 
-For complete documentation, examples, and best practices, visit the **GamanWiki**:  
-[https://github.com/7TogkID/gaman/wiki](https://github.com/7TogkID/gaman/wiki)
+For complete documentation, examples, and best practices, visit the **Gaman Docs**:  
+[Documentantion](https://gaman.7togk.id/docs)
 
 ### Create a New Project
 

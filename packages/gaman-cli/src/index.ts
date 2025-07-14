@@ -15,6 +15,22 @@ yargs(hideBin(process.argv))
     }
   )
   .command(
+    "build",
+    "Build the application.",
+    () => {},
+    async (argv) => {
+      await import("./commands/build.js");
+    }
+  )
+  .command(
+    "start",
+    "Start the application in production mode.",
+    () => {},
+    async (argv) => {
+      await import("./commands/start.js");
+    }
+  )
+  .command(
     "make:block <name>",
     "Generate a new Gaman block",
     (yargs) => {

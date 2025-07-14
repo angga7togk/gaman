@@ -1,6 +1,6 @@
 {
 	"name": "gaman",
-	"version": "0.0.38",
+	"version": "0.0.39",
 	"type": "module",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
@@ -32,8 +32,9 @@
 	"bugs": {
 		"url": "https://github.com/7TogkID/gaman/issues"
 	},
-	"peerDependencies": {
-		"@gaman/cli": "0.0.7",
+		
+	"dependencies": {
+		"@gaman/cli": "0.0.12",
 		"cookie": "^1.0.2"
 	},
 	"devDependencies": {

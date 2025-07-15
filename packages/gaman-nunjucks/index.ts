@@ -33,7 +33,6 @@ export default function nunjucks(ops: GamanNunjucksOptions = {}) {
 
   // Init Nunjucks Environment
   const env = njk.configure(join(process.cwd(), viewPath), njkOps);
-  console.log(join(process.cwd(), viewPath))
 
   return defineIntegration({
     name: "nunjucks",

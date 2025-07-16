@@ -1,4 +1,4 @@
-import type { GamanBase } from "./gaman-base";
+
 import type {
   AppConfig,
   IBlock,
@@ -6,12 +6,13 @@ import type {
 } from "./types";
 import { WebSocketServer } from "ws";
 import { formatPath } from "./utils/utils";
+import { Server } from "./server";
 
 export class GamanWebSocket<A extends AppConfig> {
   // * <path, WebSocketServer>
   #wss: { [path: string]: WebSocketServer } = {};
 
-  constructor(private app: GamanBase<A>) {}
+  constructor(private app: Server<A>) {}
 
   getWebSocketServer(path: string): WebSocketServer | undefined {
     return this.#wss[path];

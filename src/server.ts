@@ -9,7 +9,6 @@ import type {
 } from './types';
 import http from 'node:http';
 import { Log } from './utils/logger';
-import { createContext } from './context';
 import { formatPath, isHtmlString } from './utils/utils';
 import { Response } from './response';
 import { sortArrayByPriority } from './utils/priority';
@@ -17,20 +16,28 @@ import { performance } from 'perf_hooks';
 import { Color } from './utils/color';
 import HttpError from './error/HttpError';
 import { GamanWebSocket } from './web-socket';
-import { Readable } from 'node:stream';
 import path from 'node:path';
-import { HTTP_RESPONSE_SYMBOL } from './symbol';
 import { GamanCookies } from './cookies';
 import { IGNORED_LOG_FOR_PATH_REGEX } from './constant';
+import { GamanAdapter } from './adapter';
+import { detectRuntime } from './utils/runtime';
+import { NodeAdapter } from './adapter/node';
 
-export class GamanBase<A extends AppConfig> {
+export class Server<A extends AppConfig> {
 	#blocks: IBlock<A>[] = [];
 	#websocket: GamanWebSocket<A>;
 	#integrations: Array<IIntegration<A>> = [];
+	#adapter!: GamanAdapter<A>;
 
 	private strict = false;
 
 	constructor(private options: AppOptions<A>) {
+		switch (detectRuntime()) {
+			default:
+				this.#adapter = new NodeAdapter<A>(this);
+				break;
+		}
+
 		if (options.strict) {
 			this.strict = options.strict;
 		}
@@ -65,7 +72,7 @@ export class GamanBase<A extends AppConfig> {
 				});
 
 				// Initialize block childrens
-				function initChilderns(basePath: string, childrens: Array<IBlock<A>>, app: GamanBase<A>) {
+				function initChilderns(basePath: string, childrens: Array<IBlock<A>>, app: Server<A>) {
 					for (const blockChild of childrens) {
 						const childPath = path.join(basePath, blockChild.path);
 						if (app.#blocks.some((b) => b.path === childPath)) {
@@ -114,10 +121,9 @@ export class GamanBase<A extends AppConfig> {
 		});
 	}
 
-	private async requestHandle(req: http.IncomingMessage, res: http.ServerResponse) {
-		Log.setRoute(req.url || '/');
+	public async handleRequest(ctx: Context<A>) {
+		Log.setRoute(ctx.request.url || '/');
 		const startTime = performance.now();
-		const ctx = await createContext<A>(req, res);
 		try {
 			const blocksAndIntegrations = sortArrayByPriority<IBlock<A> | IIntegration<A>>(
 				[...this.#blocks, ...this.#integrations],
@@ -208,8 +214,7 @@ export class GamanBase<A extends AppConfig> {
 				}
 			}
 			Log.error(error.message);
-			res.statusCode = 500;
-			res.end('Internal Server Error');
+			return await this.handleResponse(new Response(undefined, { status: 500 }), ctx);
 		} finally {
 			const endTime = performance.now();
 
@@ -325,9 +330,6 @@ export class GamanBase<A extends AppConfig> {
 	}
 
 	private async handleResponse(result: string | object | any[] | Response, ctx: Context<A>) {
-		const res: http.ServerResponse = ctx[HTTP_RESPONSE_SYMBOL];
-		if (res.writableEnded) return; // * ignore process if response finished
-
 		const isResponse = (value: unknown): value is Response => {
 			return value instanceof Response;
 		};
@@ -391,38 +393,33 @@ export class GamanBase<A extends AppConfig> {
 			response.headers.set('Set-Cookie', cookieHeaders);
 		}
 
-		// * initialize http response
-		res.statusCode = response.status;
-		res.statusMessage = response.statusText;
-		res.setHeaders(response.headers.toMap());
-		Log.setStatus(response.status);
-
-		if (response.body instanceof Readable) {
-			return response.body.pipe(res);
+		const success = this.#adapter.handleResponse(ctx, response);
+		if (success) {
+			Log.setStatus(response.status);
 		}
-		return res.end(response.body);
+		return success;
 	}
 
 	listen() {
-		const server = http.createServer(this.requestHandle.bind(this));
+		// const server = http.createServer(this.handleRequest.bind(this));
 
-		server.on('upgrade', (request, socket, head) => {
-			const urlString = request.url || '/';
-			const { pathname } = new URL(urlString, `http://${request.headers.host}`);
+		// server.on('upgrade', (request, socket, head) => {
+		// 	const urlString = request.url || '/';
+		// 	const { pathname } = new URL(urlString, `http://${request.headers.host}`);
 
-			const wss = this.#websocket.getWebSocketServer(pathname);
-			if (wss) {
-				wss.handleUpgrade(request, socket, head, function done(ws) {
-					wss.emit('connection', ws, request);
-				});
-			} else {
-				socket.destroy();
-			}
-		});
+		// 	const wss = this.#websocket.getWebSocketServer(pathname);
+		// 	if (wss) {
+		// 		wss.handleUpgrade(request, socket, head, function done(ws) {
+		// 			wss.emit('connection', ws, request);
+		// 		});
+		// 	} else {
+		// 		socket.destroy();
+		// 	}
+		// });
 
 		const port = this.options?.server?.port || 3431;
 		const host = this.options?.server?.host || 'localhost';
-		server.listen(port, host, () => {
+		this.#adapter.start(port, host, () => {
 			Log.log(`Server is running at http://${host}:${port}`);
 		});
 	}

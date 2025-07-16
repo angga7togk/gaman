@@ -1,4 +1,5 @@
-import { GamanBase } from "./gaman-base";
+
+import { Server } from "./server";
 import type { AppConfig, AppOptions } from "./types";
 
 const defaultOptions = {
@@ -10,8 +11,8 @@ const defaultOptions = {
 
 export function serv<A extends AppConfig>(
   options: AppOptions<A> = defaultOptions
-): GamanBase<A> {
-  const app = new GamanBase<A>(options);
+): Server<A> {
+  const app = new Server<A>(options);
   app.listen();
 
   return app;

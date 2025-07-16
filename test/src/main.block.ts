@@ -3,10 +3,11 @@ import { defineBlock, Response } from 'gaman';
 export default defineBlock({
 	path: '/',
 	routes: {
-		'/': () => {
-			return Response.render('index', {
-				title: 'anu',
-			});
+		'/': async (ctx) => {
+
+			return {
+				'msg:': ctx.request.body,
+			};
 		},
 	},
 });

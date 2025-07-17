@@ -291,8 +291,16 @@ export class GamanBase<A extends AppConfig> {
 				for await (const [methodOrPathNested, nestedHandler] of Object.entries(handler)) {
 					/**
 					 * * Jika dia bukan method berarti dia berupa nestedPath
+					 * * Dan Method Routes sama Method Request harus sama
+					 * @example 
+					 * routes: {
+					 *   "/": {
+					 * 			GET: () => "OK!", // kalau request get dia pakai handler ini
+					 *      POST: () => "OK! POST" // kalau request post dia pakai handler ini
+					 *   }
+					 * }
 					 */
-					if (this.isHttpMethod(methodOrPathNested)) {
+					if (this.isHttpMethod(methodOrPathNested) && methodOrPathNested.toLowerCase() === ctx.request.method.toLowerCase()) {
 						/**
 						 * * validasi (match) itu dari params
 						 */

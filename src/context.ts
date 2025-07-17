@@ -1,6 +1,6 @@
 import http from 'node:http';
 import querystring from 'node:querystring';
-import type { Context, AppConfig } from './types';
+import type { Context, AppConfig, Request } from './types';
 import { FormData, type IFormDataEntryValue } from './utils/form-data';
 import Busboy from 'busboy'; // Import Busboy
 import { GamanHeaders } from './headers';
@@ -19,68 +19,112 @@ export async function createContext<A extends AppConfig>(
 
 	/** FormData state */
 	let form: FormData = null;
-	const formData = async () => {
-		if (form !== null) {
-			return form;
-		}
 
-		if (contentType.includes('application/x-www-form-urlencoded') && method !== 'HEAD') {
-			form = parseFormUrlEncoded(parsedBody.raw?.toString() || '{}');
-		} else if (contentType.includes('multipart/form-data') && method !== 'HEAD') {
-			const formData = await parseMultipartFormWithBusboy(req);
-			form = formData;
-		} else {
-			form = new FormData();
-		}
-		return form;
-	};
+	let body: Buffer<ArrayBufferLike> = null;
 
-	let parsedBody: {
-		json?: any;
-		raw?: Buffer;
-	} = {};
-
-	// Perubahan di sini: Hanya bufferize jika BUKAN multipart/form-data
-	if (!(contentType.includes('multipart/form-data') && method !== 'HEAD')) {
-		const bodyBuffer = await getRequestBodyBuffer(req);
-		parsedBody = parseRequestBody(bodyBuffer, contentType, method);
-	}
-
-	const gamanRequest = {
+	const gamanRequest: Request = {
 		method,
-		url: urlString,
+		url: url.href,
 		pathname: url.pathname,
-		headers: headers,
+
 		header: (key: string) => headers.get(key),
-		query: Object.fromEntries(url.searchParams.entries()),
+		headers: headers,
+
+		param: (name) => {
+			return gamanRequest.params[name];
+		},
 		params: {}, // akan di set dari router
 		// body akan menjadi raw buffer untuk non-multipart, atau null/undefined untuk multipart
-		body: parsedBody.raw || null,
-		json: async <T>() => {
-			return parsedBody.json ? (parsedBody.json as T) : ({} as T);
+
+		query: createQuery(url.searchParams),
+		
+		body: async () => {
+			if (body == null) {
+				body = await getRequestBodyBuffer(req);
+			}
+			return body;
 		},
-		formData,
-		ip: req.socket.remoteAddress || '',
-		raw: req,
+		text: async () => {
+			if (body == null) {
+				body = await getRequestBodyBuffer(req);
+			}
+			return body.toString();
+		},
+		json: async <T>() => {
+			if (contentType.includes('application/json') && method !== 'HEAD') {
+				if (body == null) {
+					body = await getRequestBodyBuffer(req);
+				}
+				try {
+					return JSON.parse(body.toString()) as T;
+				} catch {
+					return {} as T;
+				}
+			} else {
+				return {} as T;
+			}
+		},
+		formData: async () => {
+			if (form !== null) {
+				return form;
+			}
+
+			if (contentType.includes('application/x-www-form-urlencoded') && method !== 'HEAD') {
+				form = parseFormUrlEncoded(body.toString() || '{}');
+			} else if (contentType.includes('multipart/form-data') && method !== 'HEAD') {
+				const formData = await parseMultipartFormWithBusboy(req);
+				form = formData;
+			} else {
+				form = new FormData();
+			}
+			return form;
+		},
+		input: async (name: string) => (await gamanRequest.formData()).get(name)?.asString(),
+		ip: getClientIP(req),
 	};
 	const ctx = {
 		locals: <A['Locals']>{},
 		env: <A['Env']>{},
+		url,
+		cookies: new GamanCookies(gamanRequest),
 		request: gamanRequest,
-		pathname: gamanRequest.pathname,
-		json: gamanRequest.json,
+
+		// data dari request
+		param: gamanRequest.param,
 		params: gamanRequest.params,
 		query: gamanRequest.query,
-		header: gamanRequest.header,
-		headers: gamanRequest.headers,
-		cookies: new GamanCookies(gamanRequest),
-		url,
-		input: async (name: string) => (await formData()).get(name)?.asString(),
+		text: gamanRequest.text,
+		json: gamanRequest.json,
+		formData: gamanRequest.formData,
+		input: gamanRequest.input,
+
+		// data tersembunyi 
 		[HTTP_REQUEST_SYMBOL]: req,
 		[HTTP_RESPONSE_SYMBOL]: res,
 	};
 	return ctx;
 }
+
+// * sementara gini dulu ntar saya tambahin @gaman/trust-proxy
+const TRUST_PROXY_IPS = ["127.0.0.1", "::1"]; // atau IP proxy kamu
+
+function getClientIP(req: http.IncomingMessage): string {
+  const remoteIP = req.socket.remoteAddress || "";
+
+  // Cek apakah request datang dari proxy yang kita percaya
+  const isTrustedProxy = TRUST_PROXY_IPS.includes(remoteIP);
+
+  if (isTrustedProxy) {
+    const xff = req.headers["x-forwarded-for"];
+    if (typeof xff === "string") {
+      const ips = xff.split(",").map(ip => ip.trim());
+      return ips[0]; // Ambil IP paling awal (IP client asli)
+    }
+  }
+
+  return remoteIP;
+}
+
 
 async function getRequestBodyBuffer(req: http.IncomingMessage): Promise<Buffer> {
 	const chunks: Buffer[] = [];
@@ -91,32 +135,20 @@ async function getRequestBodyBuffer(req: http.IncomingMessage): Promise<Buffer> 
 	});
 }
 
-// Fungsi ini tetap sama, mem-parse body buffer untuk JSON dan URL-encoded
-function parseRequestBody(
-	bodyBuffer: Buffer,
-	contentType: string,
-	method: string,
-): {
-	json?: any;
-	raw?: Buffer;
-} {
-	if (contentType.includes('application/json') && method !== 'HEAD') {
-		try {
-			return { json: JSON.parse(bodyBuffer.toString()), raw: bodyBuffer };
-		} catch {
-			return { raw: bodyBuffer };
+function createQuery(searchParams: URLSearchParams): Request['query'] {
+	const queryFn = ((name: string) => {
+		const all = searchParams.getAll(name);
+		return all.length > 1 ? all : (all[0] ?? '');
+	}) as Request['query'];
+
+	// Copy semua entries ke dalam fungsi agar bisa diakses sebagai object
+	for (const [key, value] of searchParams.entries()) {
+		if (!(key in queryFn)) {
+			(queryFn as any)[key] = value;
 		}
 	}
 
-	// Penting: Bagian ini DIHAPUS karena multipart ditangani langsung di nodeHandler
-	// if (contentType.includes("multipart/form-data") && method !== "HEAD") {
-	//   const boundary = getMultipartBoundary(contentType);
-	//   if (!boundary) throw new MultipartParseError("Missing multipart boundary");
-	//   const stream = parseMultipartForm(bodyBuffer, boundary); // Ini akan dihapus
-	//   return { formData: stream };
-	// }
-
-	return { raw: bodyBuffer };
+	return queryFn;
 }
 
 function parseFormUrlEncoded(body: string): FormData {

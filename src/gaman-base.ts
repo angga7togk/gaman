@@ -10,7 +10,7 @@ import type {
 import http from 'node:http';
 import { Log } from './utils/logger';
 import { createContext } from './context';
-import { formatPath, isHtmlString } from './utils/utils';
+import { formatPath, isHtmlString, removeEndSlash } from './utils/utils';
 import { Response } from './response';
 import { sortArrayByPriority } from './utils/priority';
 import { performance } from 'perf_hooks';
@@ -18,7 +18,7 @@ import { Color } from './utils/color';
 import HttpError from './error/HttpError';
 import { GamanWebSocket } from './web-socket';
 import { Readable } from 'node:stream';
-import path from 'node:path';
+import path, { normalize } from 'node:path';
 import { HTTP_RESPONSE_SYMBOL } from './symbol';
 import { GamanCookies } from './cookies';
 import { IGNORED_LOG_FOR_PATH_REGEX } from './constant';
@@ -105,9 +105,9 @@ export class GamanBase<A extends AppConfig> {
 	}
 
 	registerBlock(block: IBlock<A>) {
-		// * Kasih "/" di belakang nya kalau strict
 
-		const _path = `${formatPath(block.path, this.strict)}${this.strict ? '/' : ''}`;
+		// * tambahin "/" di belakang kalau strict
+		const _path = formatPath(block.path, this.strict);
 		this.#blocks.push({
 			...block,
 			path: _path,
@@ -115,9 +115,9 @@ export class GamanBase<A extends AppConfig> {
 	}
 
 	private async requestHandle(req: http.IncomingMessage, res: http.ServerResponse) {
-		Log.setRoute(req.url || '/');
 		const startTime = performance.now();
 		const ctx = await createContext<A>(req, res);
+		Log.setRoute(ctx.request.pathname || '/');
 		try {
 			const blocksAndIntegrations = sortArrayByPriority<IBlock<A> | IIntegration<A>>(
 				[...this.#blocks, ...this.#integrations],
@@ -132,7 +132,7 @@ export class GamanBase<A extends AppConfig> {
 						 * * Jika path depannya aja udah gak sama berarti gausah di lanjutin :V
 						 */
 
-						if (!(block.path && ctx.pathname.startsWith(block.path))) {
+						if (!(block.path && ctx.request.pathname.startsWith(block.path))) {
 							continue;
 						}
 
@@ -244,14 +244,18 @@ export class GamanBase<A extends AppConfig> {
 			 * *
 			 * * dan di belakang nya kasih "/" kalau dia strict
 			 */
-			const fullPath = `${formatPath(`${basePath}/${path}`, this.strict)}${this.strict ? '/' : ''}`;
+			const routeFullPath = formatPath(`${basePath}/${path}`, this.strict);
 
 			// * setiap request di createParamRegex nya dari path Server
-			const regexParam = this.createParamRegex(fullPath);
+			const regexParam = this.createParamRegex(routeFullPath);
 
+			/**
+			 * * kalau strict pakai pathname full
+			 * * kalau non strict, hapus slash akhir biar bisa "/home" dan "/home/"
+			 */
+			const requestPath = this.strict ? ctx.request.pathname : removeEndSlash(ctx.request.pathname);
 			// ? apakah path dari client dan path server itu valid?
-			// * pakai ctx.request.url biar responsif terhadap strict url semisal "/user/detail/" ada "/" di belakang
-			const match = regexParam.regex.exec(ctx.request.url);
+			const match = regexParam.regex.exec(requestPath);
 
 			/**
 			 * * Jika match param itu tidak null
@@ -262,13 +266,15 @@ export class GamanBase<A extends AppConfig> {
 			});
 
 			// * Jika ada BINTANG (*) berarti middleware
-			const isMiddleware = fullPath.includes('*');
+			const isMiddleware = routeFullPath.includes('*');
 
 			/**
 			 * * Jika dia middleware maka pake fungsi check middleware
 			 * * Jika dia bukan middleware maka pake match
 			 */
-			const isValid = isMiddleware ? this.checkMiddleware(fullPath, ctx.pathname) : match !== null;
+			const isValid = isMiddleware
+				? this.checkMiddleware(routeFullPath, ctx.request.pathname)
+				: match !== null;
 
 			/**
 			 * * validasi (match) itu dari params
@@ -291,8 +297,19 @@ export class GamanBase<A extends AppConfig> {
 				for await (const [methodOrPathNested, nestedHandler] of Object.entries(handler)) {
 					/**
 					 * * Jika dia bukan method berarti dia berupa nestedPath
+					 * * Dan Method Routes sama Method Request harus sama
+					 * @example
+					 * routes: {
+					 *   "/": {
+					 * 			GET: () => "OK!", // kalau request get dia pakai handler ini
+					 *      POST: () => "OK! POST" // kalau request post dia pakai handler ini
+					 *   }
+					 * }
 					 */
-					if (this.isHttpMethod(methodOrPathNested)) {
+					if (
+						this.isHttpMethod(methodOrPathNested) &&
+						methodOrPathNested.toLowerCase() === ctx.request.method.toLowerCase()
+					) {
 						/**
 						 * * validasi (match) itu dari params
 						 */
@@ -310,7 +327,7 @@ export class GamanBase<A extends AppConfig> {
 						const result = await this.handleRoutes(
 							{ [methodOrPathNested]: nestedHandler },
 							ctx,
-							fullPath,
+							routeFullPath,
 						);
 
 						/**
@@ -433,7 +450,7 @@ export class GamanBase<A extends AppConfig> {
 	 * @returns True if the string is a valid HTTP method
 	 */
 	private isHttpMethod(method: string): boolean {
-		return ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'ALL'].includes(method.toUpperCase());
+		return ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'].includes(method.toUpperCase());
 	}
 
 	private createParamRegex(path: string): {

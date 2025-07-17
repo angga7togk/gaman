@@ -32,7 +32,6 @@
 	"bugs": {
 		"url": "https://github.com/7TogkID/gaman/issues"
 	},
-		
 	"dependencies": {
 		"@gaman/cli": "0.0.12",
 		"cookie": "^1.0.2"
@@ -57,6 +56,7 @@
 		"rimraf": "^6.0.1",
 		"tsc-alias": "^1.8.16",
 		"tslib": "^2.8.1",
+		"tsup": "^8.5.0",
 		"tsx": "^4.20.3",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.36.0",

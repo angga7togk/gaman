@@ -1,6 +1,6 @@
 {
 	"name": "@gaman/nunjucks",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Nunjucks integration for GamanJS framework",
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",

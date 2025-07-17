@@ -1,13 +1,13 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "module": "ES2020",
-    "rootDir": "./src/",
-    "outDir": "./dist/",
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-  },
-  "include": [
-    "src/**/*.ts",
-  ],
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"module": "ES2020",
+		"rootDir": "./src/",
+		"outDir": "./dist/",
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+
+		"typeRoots": ["src/types", "./node_modules/@types"]
+	},
+	"include": ["src/**/*.ts"]
 }

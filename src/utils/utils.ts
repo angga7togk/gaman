@@ -1,27 +1,49 @@
+/**
+ * ! strict bisa di ganti true cuman saat register block aja
+ * @param path 
+ * @param strict 
+ * @returns 
+ */
 export function formatPath(path: string, strict = false): string {
-  let formattedPath = path
-    // Pastikan tidak ada duplikasi slash
-    .replace(/\/+/g, "/")
-    // Hapus wildcard di tengah selain yang diawali atau diakhiri
-    .replace(/\/\*(?!\/|$)/g, "/")
-    .replace(/(?!^|\/)\*(?=\/)/g, "/");
+	let formattedPath = path
+		// Pastikan tidak ada duplikasi slash
+		.replace(/\/+/g, '/')
+		// Hapus wildcard di tengah selain yang diawali atau diakhiri
+		.replace(/\/\*(?!\/|$)/g, '/')
+		.replace(/(?!^|\/)\*(?=\/)/g, '/');
 
-  // Kalau strict = false, hapus trailing slash (kecuali hanya "/")
-  if (!strict && formattedPath !== "/") {
-    formattedPath = formattedPath.replace(/\/$/, "");
+	// hapus trailing slash (kecuali hanya "/")
+	if (formattedPath !== '/') {
+		formattedPath = formattedPath.replace(/\/$/, '');
+	}
+
+	// Tambahkan "/" di awal jika hilang
+	if (!formattedPath.startsWith('/')) {
+		formattedPath = `/${formattedPath}`;
+	}
+
+	// Jika kosong, tetap kembalikan "/"
+	if (formattedPath === '') {
+		formattedPath = '/';
+	}
+
+	// jika strict
+	// dan buka root path
+	if (strict && formattedPath !== '/' && !formattedPath.endsWith("/")) {
+		formattedPath = formattedPath + '/';
+	}else{
+
   }
 
-  // Tambahkan "/" di awal jika hilang
-  if (!formattedPath.startsWith("/")) {
-    formattedPath = `/${formattedPath}`;
-  }
+	return formattedPath;
+}
 
-  // Jika kosong, tetap kembalikan "/"
-  if (formattedPath === "") {
-    formattedPath = "/";
-  }
 
-  return formattedPath;
+export function removeEndSlash(s: string): string {
+  if (s.length > 1 && s.endsWith("/")) {
+    return s.slice(0, -1);
+  }
+  return s;
 }
 
 /**
@@ -30,12 +52,12 @@ export function formatPath(path: string, strict = false): string {
  * @returns True if the string is HTML, otherwise false.
  */
 export function isHtmlString(str: string): boolean {
-  if (typeof str !== "string") return false;
+	if (typeof str !== 'string') return false;
 
-  // Regular expression to match basic HTML tags
-  const htmlRegex = /<\/?[a-z][\s\S]*>/i;
+	// Regular expression to match basic HTML tags
+	const htmlRegex = /<\/?[a-z][\s\S]*>/i;
 
-  return htmlRegex.test(str.trim());
+	return htmlRegex.test(str.trim());
 }
 
 /**
@@ -46,21 +68,17 @@ export function isHtmlString(str: string): boolean {
  * @param order - Sorting order: 'asc' (ascending) or 'desc' (descending). Default is 'asc'.
  * @returns A sorted array.
  */
-export function sortArray<T>(
-  array: T[],
-  key: keyof T,
-  order: "asc" | "desc" = "asc"
-): T[] {
-  return [...array].sort((a, b) => {
-    const aValue = a[key];
-    const bValue = b[key];
+export function sortArray<T>(array: T[], key: keyof T, order: 'asc' | 'desc' = 'asc'): T[] {
+	return [...array].sort((a, b) => {
+		const aValue = a[key];
+		const bValue = b[key];
 
-    if (aValue === bValue) return 0;
+		if (aValue === bValue) return 0;
 
-    const comparison = aValue > bValue ? 1 : -1;
+		const comparison = aValue > bValue ? 1 : -1;
 
-    return order === "asc" ? comparison : -comparison;
-  });
+		return order === 'asc' ? comparison : -comparison;
+	});
 }
 
 /**
@@ -68,55 +86,53 @@ export function sortArray<T>(
  * @param data - Data to encode
  */
 export function base64UrlEncode(data: string): string {
-  return Buffer.from(data)
-    .toString("base64")
-    .replace(/=/g, "") // Remove padding
-    .replace(/\+/g, "-") // Replace "+" with "-"
-    .replace(/\//g, "_"); // Replace "/" with "_"
+	return Buffer.from(data)
+		.toString('base64')
+		.replace(/=/g, '') // Remove padding
+		.replace(/\+/g, '-') // Replace "+" with "-"
+		.replace(/\//g, '_'); // Replace "/" with "_"
 }
 
 export function parseBoolean(value: string) {
-  if (typeof value === "boolean") return value;
+	if (typeof value === 'boolean') return value;
 
-  if (typeof value === "string") {
-    const lowered = value.toLowerCase().trim();
-    if (["true", "1", "yes", "on"].includes(lowered)) return true;
-    if (["false", "0", "no", "off"].includes(lowered)) return false;
-  }
+	if (typeof value === 'string') {
+		const lowered = value.toLowerCase().trim();
+		if (['true', '1', 'yes', 'on'].includes(lowered)) return true;
+		if (['false', '0', 'no', 'off'].includes(lowered)) return false;
+	}
 
-  if (typeof value === "number") {
-    return value !== 0;
-  }
+	if (typeof value === 'number') {
+		return value !== 0;
+	}
 
-  return Boolean(value); // fallback (misalnya: null, undefined, dll)
+	return Boolean(value); // fallback (misalnya: null, undefined, dll)
 }
 
 export function parseExpires(expires: string | number): Date {
-    if (typeof expires === "number") {
-      return new Date(Date.now() + expires);
-    }
+	if (typeof expires === 'number') {
+		return new Date(Date.now() + expires);
+	}
 
-    if (typeof expires === "string") {
-      const match = expires.match(/^(\d+)([smhdw])$/i);
-      if (!match) {
-        throw new Error("Invalid expires format. Use '1h', '2d', or a number.");
-      }
+	if (typeof expires === 'string') {
+		const match = expires.match(/^(\d+)([smhdw])$/i);
+		if (!match) {
+			throw new Error("Invalid expires format. Use '1h', '2d', or a number.");
+		}
 
-      const value = parseInt(match[1]!, 10);
-      const unit = match[2]!.toLowerCase();
+		const value = parseInt(match[1]!, 10);
+		const unit = match[2]!.toLowerCase();
 
-      const multiplier: Record<string, number> = {
-        s: 1000,
-        m: 1000 * 60,
-        h: 1000 * 60 * 60,
-        d: 1000 * 60 * 60 * 24,
-        w: 1000 * 60 * 60 * 24 * 7,
-      };
+		const multiplier: Record<string, number> = {
+			s: 1000,
+			m: 1000 * 60,
+			h: 1000 * 60 * 60,
+			d: 1000 * 60 * 60 * 24,
+			w: 1000 * 60 * 60 * 24 * 7,
+		};
 
-      return new Date(Date.now() + value * (multiplier[unit] || 0));
-    }
+		return new Date(Date.now() + value * (multiplier[unit] || 0));
+	}
 
-    throw new Error(
-      "Invalid expires format. Use a number or a string like '1h'."
-    );
-  }
+	throw new Error("Invalid expires format. Use a number or a string like '1h'.");
+}

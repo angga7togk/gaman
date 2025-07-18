@@ -19,6 +19,7 @@
   <img src="https://img.shields.io/npm/l/gaman" alt="npm license">
   <img src="https://img.shields.io/github/stars/7togkid/gaman" alt="github stars">
 </p>
+
 ---
 
 ## 🧠 Philosophy

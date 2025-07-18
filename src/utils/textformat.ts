@@ -101,8 +101,7 @@ export const TextFormat = {
         // Foreground: §X
         .replace(/§([0-9a-f])/gi, (_, c) => fgMap[c.toLowerCase()] ?? '')
         // Style: §l §n §o §m §r
-        .replace(/§([lnomkr])/gi, (_, c) => styleMap[c.toLowerCase()] ?? '') +
-      TextFormat.RESET
+        .replace(/§([lnomkr])/gi, (_, c) => styleMap[c.toLowerCase()] ?? '')
     );
   },
 };

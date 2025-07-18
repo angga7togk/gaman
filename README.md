@@ -13,6 +13,12 @@
   <strong>GamanJS is a modern backend framework built for resilience, scalability, and simplicity.</strong>
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/npm/v/gaman" alt="npm version">
+  <img src="https://img.shields.io/npm/dm/gaman" alt="npm download">
+  <img src="https://img.shields.io/npm/l/gaman" alt="npm license">
+  <img src="https://img.shields.io/github/stars/7togkid/gaman" alt="github stars">
+</p>
 ---
 
 ## 🧠 Philosophy
